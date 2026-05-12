@@ -24,6 +24,9 @@ export default function InventoryList() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [conditionFilter, setConditionFilter] = useState('');
+  const [locationFilter, setLocationFilter] = useState('');
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -106,9 +109,18 @@ export default function InventoryList() {
     if (error) toast.error(error.message); else { toast.success('Deleted'); load(); }
   }
 
-  const filtered = rows.filter((r) =>
-    !q || r.name?.toLowerCase().includes(q.toLowerCase()) || r.sku?.toLowerCase().includes(q.toLowerCase())
-  );
+  const filtered = rows.filter((r) => {
+    const matchesQ = !q || r.name?.toLowerCase().includes(q.toLowerCase()) || r.sku?.toLowerCase().includes(q.toLowerCase());
+    const matchesCat = !categoryFilter || r.category_id === categoryFilter;
+    const matchesCond = !conditionFilter || r.condition === conditionFilter;
+    const matchesLoc = !locationFilter || (r.location || '') === locationFilter;
+    return matchesQ && matchesCat && matchesCond && matchesLoc;
+  });
+
+  // Unique non-empty locations across all items, for the location dropdown
+  const locations = Array.from(new Set(rows.map((r) => r.location).filter(Boolean))).sort();
+
+  const hasActiveFilters = q || categoryFilter || conditionFilter || locationFilter;
 
   const totalValue = filtered.reduce((s, r) => s + Number(r.quantity || 0) * Number(r.unit_cost || 0), 0);
   const lowCount = filtered.filter((r) => Number(r.quantity) <= Number(r.reorder_level)).length;
@@ -183,15 +195,42 @@ export default function InventoryList() {
       </div>
 
       <div className="card-padded mb-4">
-        <div className="relative">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400" />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search items by name or SKU…"
-            className="input pl-10"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div className="relative md:col-span-1">
+            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search by name or SKU…"
+              className="input pl-10"
+            />
+          </div>
+          <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="input">
+            <option value="">All categories</option>
+            {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+          <select value={conditionFilter} onChange={(e) => setConditionFilter(e.target.value)} className="input">
+            <option value="">All conditions</option>
+            {ITEM_CONDITION.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+          </select>
+          <select value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)} className="input">
+            <option value="">All locations</option>
+            {locations.map((loc) => <option key={loc} value={loc}>{loc}</option>)}
+          </select>
         </div>
+        {hasActiveFilters && (
+          <div className="mt-3 flex items-center gap-3 text-xs text-ink-600">
+            <span>
+              Showing <strong>{filtered.length}</strong> of {rows.length} items
+            </span>
+            <button
+              onClick={() => { setQ(''); setCategoryFilter(''); setConditionFilter(''); setLocationFilter(''); }}
+              className="text-rose-700 hover:text-rose-900 underline"
+            >
+              Clear filters
+            </button>
+          </div>
+        )}
       </div>
 
       <DataTable
