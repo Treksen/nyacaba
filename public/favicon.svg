@@ -1,0 +1,45 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <circle cx="256" cy="256" r="250" fill="#064E3B"/>
+  <circle cx="256" cy="256" r="210" stroke="#EAB54F" stroke-width="8" fill="none"/>
+
+  <!-- Decorative Bottom Dots -->
+  <circle cx="170" cy="390" r="12" fill="#EAB54F"/>
+  <circle cx="256" cy="410" r="12" fill="#EAB54F"/>
+  <circle cx="342" cy="390" r="12" fill="#EAB54F"/>
+
+  <!-- Menorah Base -->
+  <path d="M220 360H292C305 360 315 370 320 382H192C197 370 207 360 220 360Z" fill="#EAB54F"/>
+  <rect x="244" y="160" width="24" height="210" rx="12" fill="#EAB54F"/>
+
+  <!-- Center Branch -->
+  <rect x="242" y="115" width="28" height="45" rx="10" fill="#EAB54F"/>
+
+  <!-- Left Branches -->
+  <path d="M256 245C215 245 185 215 185 170" stroke="#EAB54F" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M256 285C195 285 145 235 145 170" stroke="#EAB54F" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M256 325C175 325 110 255 110 170" stroke="#EAB54F" stroke-width="18" stroke-linecap="round" fill="none"/>
+
+  <!-- Right Branches -->
+  <path d="M256 245C297 245 327 215 327 170" stroke="#EAB54F" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M256 285C317 285 367 235 367 170" stroke="#EAB54F" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M256 325C337 325 402 255 402 170" stroke="#EAB54F" stroke-width="18" stroke-linecap="round" fill="none"/>
+
+  <!-- Candle Holders -->
+  <rect x="96" y="150" width="28" height="16" rx="6" fill="#EAB54F"/>
+  <rect x="131" y="150" width="28" height="16" rx="6" fill="#EAB54F"/>
+  <rect x="171" y="150" width="28" height="16" rx="6" fill="#EAB54F"/>
+  <rect x="242" y="100" width="28" height="16" rx="6" fill="#EAB54F"/>
+  <rect x="313" y="150" width="28" height="16" rx="6" fill="#EAB54F"/>
+  <rect x="353" y="150" width="28" height="16" rx="6" fill="#EAB54F"/>
+  <rect x="388" y="150" width="28" height="16" rx="6" fill="#EAB54F"/>
+
+  <!-- Flames -->
+  <path d="M110 115C120 128 122 138 110 148C98 138 100 128 110 115Z" fill="#F5C76B"/>
+  <path d="M145 115C155 128 157 138 145 148C133 138 135 128 145 115Z" fill="#F5C76B"/>
+  <path d="M185 115C195 128 197 138 185 148C173 138 175 128 185 115Z" fill="#F5C76B"/>
+  <path d="M256 65C268 82 270 94 256 106C242 94 244 82 256 65Z" fill="#F5C76B"/>
+  <path d="M327 115C337 128 339 138 327 148C315 138 317 128 327 115Z" fill="#F5C76B"/>
+  <path d="M367 115C377 128 379 138 367 148C355 138 357 128 367 115Z" fill="#F5C76B"/>
+  <path d="M402 115C412 128 414 138 402 148C390 138 392 128 402 115Z" fill="#F5C76B"/>
+</svg>

@@ -1,0 +1,53 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build output
+dist
+dist-ssr
+build
+*.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment — NEVER COMMIT
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.production.local
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Vercel
+.vercel
+
+# Supabase local
+supabase/.branches
+supabase/.temp
+supabase/seed.sql
+
+# Test coverage
+coverage
+.nyc_output
+
+# Build artifacts
+*.tsbuildinfo
+
+# Misc
+.turbo
+.cache
+.parcel-cache

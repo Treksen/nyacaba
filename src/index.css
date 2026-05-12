@@ -1,0 +1,137 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-cream-50 text-ink-900 font-sans;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display tracking-tight text-ink-900;
+    font-feature-settings: 'ss01', 'kern';
+  }
+
+  /* Decorative scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-cream-100;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary-200 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary-300;
+  }
+
+  /* Selection */
+  ::selection {
+    @apply bg-accent-200 text-primary-900;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
+           font-medium text-sm transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-cream-50
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary-900 text-cream-50 hover:bg-primary-800
+           focus:ring-primary-700 shadow-soft hover:shadow-lift;
+  }
+
+  .btn-accent {
+    @apply btn bg-accent-400 text-primary-900 hover:bg-accent-500
+           focus:ring-accent-400 shadow-soft;
+  }
+
+  .btn-secondary {
+    @apply btn bg-cream-100 text-primary-900 hover:bg-cream-200 border border-cream-300
+           focus:ring-primary-300;
+  }
+
+  .btn-ghost {
+    @apply btn text-primary-900 hover:bg-primary-50
+           focus:ring-primary-300;
+  }
+
+  .btn-danger {
+    @apply btn bg-red-600 text-white hover:bg-red-700
+           focus:ring-red-500 shadow-soft;
+  }
+
+  .input {
+    @apply w-full px-3.5 py-2.5 rounded-lg bg-white border border-cream-300
+           text-ink-900 placeholder-ink-400
+           focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100
+           transition-colors duration-200
+           disabled:bg-cream-100 disabled:cursor-not-allowed;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-ink-700 mb-1.5;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl border border-cream-200 shadow-soft;
+  }
+
+  .card-padded {
+    @apply card p-6;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-emerald { @apply badge bg-primary-100 text-primary-900; }
+  .badge-gold    { @apply badge bg-accent-100 text-accent-800; }
+  .badge-rose    { @apply badge bg-rose-50 text-rose-700; }
+  .badge-amber   { @apply badge bg-amber-50 text-amber-800; }
+  .badge-slate   { @apply badge bg-ink-100 text-ink-700; }
+  .badge-blue    { @apply badge bg-blue-50 text-blue-700; }
+
+  /* Display heading kicker */
+  .kicker {
+    @apply text-xs font-semibold tracking-[0.18em] uppercase text-accent-600;
+  }
+
+  .divider-ornament {
+    background-image: radial-gradient(circle, theme('colors.cream.300') 1px, transparent 1px);
+    background-size: 8px 1px;
+    background-repeat: repeat-x;
+    background-position: center;
+    height: 1px;
+  }
+
+  /* Subtle paper texture for headers */
+  .paper-grain {
+    background-image:
+      radial-gradient(circle at 20% 0%, rgba(212, 162, 78, 0.06), transparent 40%),
+      radial-gradient(circle at 90% 50%, rgba(15, 74, 60, 0.05), transparent 40%);
+  }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .text-pretty  { text-wrap: pretty; }
+
+  /* Print styles for receipts and statements */
+  @media print {
+    body { @apply bg-white text-black; }
+    .no-print { display: none !important; }
+    .print-card { @apply shadow-none border border-ink-200; }
+  }
+}
