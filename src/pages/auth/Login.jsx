@@ -44,8 +44,8 @@ export default function Login() {
           className="absolute inset-0 opacity-[0.06]"
           style={{
             backgroundImage:
-              'radial-gradient(circle at 1px 1px, #FAF7F2 1px, transparent 0)',
-            backgroundSize: '24px 24px',
+              "radial-gradient(circle at 1px 1px, #FAF7F2 1px, transparent 0)",
+            backgroundSize: "24px 24px",
           }}
         />
         <div className="relative">
@@ -57,14 +57,16 @@ export default function Login() {
           </div>
         </div>
 
-        <div className="relative max-w-lg">
+        <div className="relative max-w-2xl">
           <p className="kicker !text-accent-300 mb-4">A place to belong</p>
-          <h2 className="font-display text-5xl xl:text-6xl leading-[1.05] tracking-tight mb-6">
-            One community.
+          <h2 className="font-display text-5xl xl:text-5xl leading-[1.05] tracking-tight mb-6">
+            One Family.
             <br />
-            <span className="text-accent-300 italic">One faithful</span>
-            <br />
-            ledger of care.
+            <span className="text-accent-300 italic">
+              One faithful ledger of care.
+            </span>
+            {/* <br /> */}
+            {/* ledger of care. */}
           </h2>
           <p className="text-cream-100/80 text-lg leading-relaxed text-pretty">
             Track contributions, support members in need, manage projects and
@@ -97,7 +99,9 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="label">Email address</label>
+              <label htmlFor="email" className="label">
+                Email address
+              </label>
               <div className="relative">
                 <Mail
                   size={16}
@@ -117,7 +121,9 @@ export default function Login() {
             </div>
 
             <div>
-              <label htmlFor="password" className="label">Password</label>
+              <label htmlFor="password" className="label">
+                Password
+              </label>
               <div className="relative">
                 <Lock
                   size={16}
@@ -141,7 +147,9 @@ export default function Login() {
               disabled={submitting}
               className="btn-primary w-full mt-2"
             >
-              {submitting ? 'Signing in…' : (
+              {submitting ? (
+                "Signing in…"
+              ) : (
                 <>
                   Sign in
                   <ArrowRight size={16} />
@@ -151,8 +159,11 @@ export default function Login() {
           </form>
 
           <p className="text-sm text-ink-600 text-center mt-8">
-            New to {CHURCH_NAME}?{' '}
-            <Link to="/register" className="text-primary-900 font-semibold hover:text-primary-700 underline-offset-2 hover:underline">
+            New to {CHURCH_NAME}?{" "}
+            <Link
+              to="/register"
+              className="text-primary-900 font-semibold hover:text-primary-700 underline-offset-2 hover:underline"
+            >
               Create an account
             </Link>
           </p>

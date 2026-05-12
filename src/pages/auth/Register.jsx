@@ -51,17 +51,17 @@ export default function Register() {
           </p>
         </div>
 
-        <div className="relative max-w-lg">
+        <div className="relative max-w-2xl">
           <p className="kicker !text-accent-300 mb-4">Karibu</p>
-          <h2 className="font-display text-5xl xl:text-6xl leading-[1.05] tracking-tight mb-6">
+          <h2 className="font-display text-1xl xl:text-3xl leading-[1.05] tracking-tight mb-6">
             Join the
             <br />
-            <span className="italic text-accent-300">{CHURCH_NAME}</span>
+            <span className="italic text-accent-300">{CHURCH_NAME} Welfare Management System</span>
           </h2>
           <p className="text-cream-100/80 text-lg leading-relaxed">
-            New accounts go through a quick admin review. Once approved, you'll see
+            New accounts go through a quick review. Once approved, you'll see
             your contributions, request welfare support, and stay close to the
-            community.
+            Family.
           </p>
         </div>
 
@@ -79,7 +79,7 @@ export default function Register() {
           <p className="kicker mb-2">Create Account</p>
           <h1 className="font-display text-4xl font-semibold mb-2">Join us</h1>
           <p className="text-ink-600 mb-8">
-            Register, then wait for admin approval. You'll be notified when access opens.
+            Register, then wait for approval. You'll be notified when access opens.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">

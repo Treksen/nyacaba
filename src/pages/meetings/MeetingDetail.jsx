@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Calendar, FileText, ListTodo, Vote, Plus, Trash2, Check, Edit2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, FileText, ListTodo, Vote, Plus, Trash2, Check, Edit2, Upload, Download } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { formatDate, formatDateTime } from '../../lib/format';
 import { MEETING_STATUS, RESOLUTION_STATUS } from '../../lib/constants';
+import { uploadMeetingMinutesPdf, removeMeetingMinutesPdf } from '../../lib/meetingMinutes';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import EmptyState from '../../components/ui/EmptyState';
 import StatusBadge from '../../components/ui/StatusBadge';
@@ -28,6 +29,8 @@ export default function MeetingDetail() {
   const [actionForm, setActionForm] = useState({ title: '', assigned_to: '', due_date: '' });
   const [minOpen, setMinOpen] = useState(false);
   const [minutesContent, setMinutesContent] = useState('');
+  const [uploadingPdf, setUploadingPdf] = useState(false);
+  const pdfInputRef = useRef(null);
   const [resOpen, setResOpen] = useState(false);
   const [resForm, setResForm] = useState({ title: '', description: '' });
   const [voteForResolution, setVoteForResolution] = useState({}); // local cast tracking
@@ -83,6 +86,59 @@ export default function MeetingDetail() {
     }
     if (error) toast.error(error.message);
     else { toast.success('Minutes saved'); setMinOpen(false); load(); }
+  }
+
+  async function handlePdfSelect(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingPdf(true);
+    try {
+      const url = await uploadMeetingMinutesPdf(file, id);
+
+      // Upsert into meeting_minutes — create row if needed
+      if (minutes) {
+        const { error } = await supabase
+          .from('meeting_minutes')
+          .update({ document_url: url, uploaded_by: profile?.id })
+          .eq('id', minutes.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('meeting_minutes').insert({
+          meeting_id: id,
+          content: '(See attached PDF)',
+          document_url: url,
+          uploaded_by: profile?.id,
+        });
+        if (error) throw error;
+      }
+      toast.success('Minutes PDF uploaded');
+      await load();
+    } catch (err) {
+      toast.error(err.message || 'Could not upload PDF');
+    } finally {
+      setUploadingPdf(false);
+      if (pdfInputRef.current) pdfInputRef.current.value = '';
+    }
+  }
+
+  async function handleRemovePdf() {
+    if (!minutes?.document_url) return;
+    if (!confirm('Remove the minutes PDF?')) return;
+    setUploadingPdf(true);
+    try {
+      await removeMeetingMinutesPdf(id);
+      const { error } = await supabase
+        .from('meeting_minutes')
+        .update({ document_url: null })
+        .eq('id', minutes.id);
+      if (error) throw error;
+      toast.success('PDF removed');
+      await load();
+    } catch (err) {
+      toast.error(err.message || 'Could not remove PDF');
+    } finally {
+      setUploadingPdf(false);
+    }
   }
 
   async function addAction(e) {
@@ -251,10 +307,25 @@ export default function MeetingDetail() {
               <FileText size={18}/> Minutes
             </h3>
             {isAdmin && (
-              <div className="flex gap-1">
+              <div className="flex gap-1 flex-wrap">
                 <button onClick={() => setMinOpen(true)} className="btn-secondary text-xs !py-1.5">
-                  {minutes ? 'Edit' : 'Add'}
+                  {minutes ? 'Edit text' : 'Add text'}
                 </button>
+                <button
+                  onClick={() => pdfInputRef.current?.click()}
+                  disabled={uploadingPdf}
+                  className="btn-secondary text-xs !py-1.5"
+                  title="Upload a PDF version of the minutes"
+                >
+                  <Upload size={12}/> {uploadingPdf ? 'Uploading…' : (minutes?.document_url ? 'Replace PDF' : 'Upload PDF')}
+                </button>
+                <input
+                  ref={pdfInputRef}
+                  type="file"
+                  accept="application/pdf"
+                  hidden
+                  onChange={handlePdfSelect}
+                />
                 {minutes && (
                   <button onClick={deleteMinutes} className="p-1.5 rounded-lg text-rose-700 hover:bg-rose-50" aria-label="Delete minutes">
                     <Trash2 size={14}/>
@@ -263,6 +334,38 @@ export default function MeetingDetail() {
               </div>
             )}
           </div>
+          {minutes?.document_url && (
+            <div className="mb-3 flex items-center justify-between gap-3 bg-primary-50 border border-primary-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <FileText size={18} className="text-primary-900 shrink-0"/>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-ink-900 truncate">Minutes PDF available</p>
+                  <p className="text-xs text-ink-600">Uploaded {formatDate(minutes.updated_at || minutes.created_at)}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                <a
+                  href={minutes.document_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs text-primary-900 hover:bg-primary-100 border border-primary-300 transition"
+                >
+                  <Download size={12}/> Download
+                </a>
+                {isAdmin && (
+                  <button
+                    onClick={handleRemovePdf}
+                    disabled={uploadingPdf}
+                    className="p-1.5 rounded-lg text-rose-700 hover:bg-rose-50 transition"
+                    aria-label="Remove PDF"
+                    title="Remove PDF"
+                  >
+                    <Trash2 size={12}/>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
           {minutes ? (
             <div className="text-sm text-ink-700 whitespace-pre-line max-h-80 overflow-y-auto">{minutes.content}</div>
           ) : (

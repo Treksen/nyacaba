@@ -36,9 +36,16 @@ export default function MeetingsList() {
   async function handleSubmit(e) {
     e.preventDefault();
     setSaving(true);
+    // datetime-local returns a tz-naive string like "2025-10-02T22:00".
+    // new Date(str) interprets it in the browser's local timezone,
+    // .toISOString() then encodes the correct UTC instant for storage.
+    // Without this, Postgres assumes UTC and the time is wrong by your TZ offset.
+    const isoMeetingDate = form.meeting_date
+      ? new Date(form.meeting_date).toISOString()
+      : null;
     const { error } = await supabase.from('meetings').insert({
       title: form.title,
-      meeting_date: form.meeting_date,
+      meeting_date: isoMeetingDate,
       location: form.location || null,
       agenda: form.agenda || null,
       created_by: profile?.id,

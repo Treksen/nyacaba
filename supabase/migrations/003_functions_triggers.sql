@@ -115,7 +115,7 @@ create trigger trg_gen_welfare_no
   for each row execute function public.gen_welfare_request_no();
 
 -- =========================================================================
--- Generate membership numbers like NYM-0001
+-- Generate membership numbers like NWMS-0001
 -- =========================================================================
 create or replace function public.gen_membership_no()
 returns trigger language plpgsql as $$
@@ -126,8 +126,8 @@ begin
     select coalesce(max((regexp_replace(membership_no, '\D','','g'))::int), 0) + 1
       into next_num
     from members
-    where membership_no like 'NYM-%';
-    new.membership_no := 'NYM-' || lpad(next_num::text, 4, '0');
+    where membership_no like 'NWMS-M%';
+    new.membership_no := 'NWMS-M' || lpad(next_num::text, 4, '0');
   end if;
   return new;
 end $$;
