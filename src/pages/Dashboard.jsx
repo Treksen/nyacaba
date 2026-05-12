@@ -450,7 +450,7 @@ export default function Dashboard() {
             <EmptyState
               icon={Hammer}
               title="No projects yet"
-              description="Once admins set up church projects they'll appear here."
+              description="Welfare projects will appear here once setup."
             />
           ) : (
             <div className="space-y-4">

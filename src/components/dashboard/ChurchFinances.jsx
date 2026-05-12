@@ -31,7 +31,7 @@ export default function ChurchFinances() {
 
   if (loading) return (
     <div className="card-padded flex justify-center py-10">
-      <LoadingSpinner label="Loading church totals…" />
+      <LoadingSpinner label="Loading Welfare totals…" />
     </div>
   );
 
@@ -57,10 +57,12 @@ export default function ChurchFinances() {
     <div className="card-padded">
       <div className="flex items-start justify-between mb-1">
         <div>
-          <p className="kicker">Church Transparency</p>
-          <h3 className="font-display text-xl font-semibold">Church finances</h3>
+          <p className="kicker">Welfare Finances</p>
+          {/* <h3 className="font-display text-xl font-semibold">
+            Welfare Finances
+          </h3> */}
           <p className="text-xs text-ink-600 mt-0.5">
-            Aggregate giving — no individual amounts shown.
+            Aggregate Contributions.
           </p>
         </div>
       </div>
@@ -68,24 +70,35 @@ export default function ChurchFinances() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
         <div className="bg-cream-100 rounded-xl p-3">
           <p className="kicker mb-0.5">This Year</p>
-          <p className="font-display text-xl font-semibold text-primary-900">{formatMoney(data.this_year_total)}</p>
+          <p className="font-display text-xl font-semibold text-primary-900">
+            {formatMoney(data.this_year_total)}
+          </p>
         </div>
         <div className="bg-cream-100 rounded-xl p-3">
           <p className="kicker mb-0.5">This Month</p>
-          <p className="font-display text-xl font-semibold text-primary-900">{formatMoney(thisMonth)}</p>
+          <p className="font-display text-xl font-semibold text-primary-900">
+            {formatMoney(thisMonth)}
+          </p>
           {TrendIcon && (
-            <p className={`text-xs flex items-center gap-1 mt-0.5 ${monthChange >= 0 ? 'text-primary-700' : 'text-rose-700'}`}>
-              <TrendIcon size={12}/> {monthChange >= 0 ? '+' : ''}{monthChange.toFixed(0)}% vs last month
+            <p
+              className={`text-xs flex items-center gap-1 mt-0.5 ${monthChange >= 0 ? "text-primary-700" : "text-rose-700"}`}
+            >
+              <TrendIcon size={12} /> {monthChange >= 0 ? "+" : ""}
+              {monthChange.toFixed(0)}% vs last month
             </p>
           )}
         </div>
         <div className="bg-cream-100 rounded-xl p-3">
           <p className="kicker mb-0.5">Last Month</p>
-          <p className="font-display text-xl font-semibold text-ink-800">{formatMoney(lastMonth)}</p>
+          <p className="font-display text-xl font-semibold text-ink-800">
+            {formatMoney(lastMonth)}
+          </p>
         </div>
         <div className="bg-cream-100 rounded-xl p-3">
           <p className="kicker mb-0.5">Active Members</p>
-          <p className="font-display text-xl font-semibold text-primary-900">{data.active_members}</p>
+          <p className="font-display text-xl font-semibold text-primary-900">
+            {data.active_members}
+          </p>
           <p className="text-xs text-ink-500">of {data.total_members}</p>
         </div>
       </div>
@@ -95,18 +108,39 @@ export default function ChurchFinances() {
           <p className="kicker mb-2">Last 12 Months</p>
           <div className="h-44">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthly} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E8DFD0" vertical={false}/>
-                <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#6E6555' }} axisLine={false} tickLine={false}/>
-                <YAxis tick={{ fontSize: 11, fill: '#6E6555' }} axisLine={false} tickLine={false}
-                  tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}K` : v} />
-                <Tooltip formatter={(v) => formatMoney(v)} labelClassName="!text-ink-900" />
+              <LineChart
+                data={monthly}
+                margin={{ top: 10, right: 12, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#E8DFD0"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fontSize: 11, fill: "#6E6555" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: "#6E6555" }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v) =>
+                    v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v
+                  }
+                />
+                <Tooltip
+                  formatter={(v) => formatMoney(v)}
+                  labelClassName="!text-ink-900"
+                />
                 <Line
                   type="monotone"
                   dataKey="total"
                   stroke="#0F4A3C"
                   strokeWidth={2.5}
-                  dot={{ r: 4, fill: '#0F4A3C', strokeWidth: 0 }}
+                  dot={{ r: 4, fill: "#0F4A3C", strokeWidth: 0 }}
                   activeDot={{ r: 6 }}
                 />
               </LineChart>
@@ -115,26 +149,39 @@ export default function ChurchFinances() {
         </div>
       )}
 
-      {(data.day_of_month_pattern?.length > 0) && (
+      {data.day_of_month_pattern?.length > 0 && (
         <div className="mt-5">
           <div className="flex items-end justify-between mb-2">
-            <p className="kicker">Day of Month — When People Give</p>
+            <p className="kicker">Day of Month</p>
             <p className="text-xs text-ink-500">Last 12 months</p>
           </div>
           <div className="h-44">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data.day_of_month_pattern} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E8DFD0" vertical={false}/>
+              <LineChart
+                data={data.day_of_month_pattern}
+                margin={{ top: 10, right: 12, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#E8DFD0"
+                  vertical={false}
+                />
                 <XAxis
                   dataKey="day"
-                  tick={{ fontSize: 11, fill: '#6E6555' }}
+                  tick={{ fontSize: 11, fill: "#6E6555" }}
                   axisLine={false}
                   tickLine={false}
                   interval={2}
                   tickFormatter={(d) => String(d)}
                 />
-                <YAxis tick={{ fontSize: 11, fill: '#6E6555' }} axisLine={false} tickLine={false}
-                  tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}K` : v} />
+                <YAxis
+                  tick={{ fontSize: 11, fill: "#6E6555" }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v) =>
+                    v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v
+                  }
+                />
                 <Tooltip
                   formatter={(v) => formatMoney(v)}
                   labelFormatter={(d) => `Day ${d} of month`}
@@ -145,14 +192,15 @@ export default function ChurchFinances() {
                   dataKey="total"
                   stroke="#D4A24E"
                   strokeWidth={2.5}
-                  dot={{ r: 3.5, fill: '#D4A24E', strokeWidth: 0 }}
+                  dot={{ r: 3.5, fill: "#D4A24E", strokeWidth: 0 }}
                   activeDot={{ r: 6 }}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
           <p className="text-[11px] text-ink-500 mt-1">
-            Each dot is the total amount given on that day of the month, summed across the last 12 months. Helps the treasurer time monthly reminders.
+            Each dot is the total amount given on that day of the month, summed
+            across the last 12 months.
           </p>
         </div>
       )}
@@ -162,15 +210,23 @@ export default function ChurchFinances() {
           <p className="kicker mb-2">This Year by Type</p>
           <ul className="space-y-1.5">
             {typeList.map((t) => {
-              const pct = data.this_year_total > 0 ? (t.total / Number(data.this_year_total)) * 100 : 0;
+              const pct =
+                data.this_year_total > 0
+                  ? (t.total / Number(data.this_year_total)) * 100
+                  : 0;
               return (
                 <li key={t.key} className="text-sm">
                   <div className="flex items-center justify-between mb-0.5">
                     <span className="text-ink-800">{t.label}</span>
-                    <span className="font-semibold text-primary-900 tabular-nums">{formatMoney(t.total)}</span>
+                    <span className="font-semibold text-primary-900 tabular-nums">
+                      {formatMoney(t.total)}
+                    </span>
                   </div>
                   <div className="h-1.5 rounded-full bg-cream-200 overflow-hidden">
-                    <div className="h-full bg-primary-700 rounded-full" style={{ width: `${pct}%` }} />
+                    <div
+                      className="h-full bg-primary-700 rounded-full"
+                      style={{ width: `${pct}%` }}
+                    />
                   </div>
                 </li>
               );
