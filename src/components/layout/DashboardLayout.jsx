@@ -14,7 +14,10 @@ export default function DashboardLayout() {
           <Outlet />
         </main>
         <footer className="py-6 px-6 text-center text-xs text-ink-500 border-t border-cream-200 bg-cream-100/40">
-          <p>Nyacaba Welfare Management System · Built with care for the Family</p>
+          <p>
+            © {new Date().getFullYear()} Nyacaba Family. All
+            Rights Reserved.
+          </p>
         </footer>
       </div>
     </div>

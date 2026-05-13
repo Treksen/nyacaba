@@ -86,7 +86,7 @@ export default function Login() {
       <div className="flex flex-col justify-center px-6 py-12 sm:px-10 lg:px-16 bg-cream-50">
         <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
           <Logo size={36} />
-          <h1 className="font-display text-2xl">{CHURCH_NAME}</h1>
+          <h1 className="font-display text-1xl">{CHURCH_NAME}</h1>
         </div>
         <div className="max-w-md w-full mx-auto">
           <p className="kicker mb-2">Sign In</p>
@@ -115,7 +115,7 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="input pl-10"
-                  placeholder="you@church.org"
+                  placeholder="yourname@gmail.com"
                 />
               </div>
             </div>
