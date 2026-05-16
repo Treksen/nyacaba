@@ -16,6 +16,7 @@ export default defineConfig({
         background_color: '#FAF7F2',
         display: 'standalone',
         start_url: '/',
+        
         icons: [
           {
             src: '/icons/icon-192.png',
@@ -30,8 +31,11 @@ export default defineConfig({
         ],
       },
       workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
         navigateFallback: '/index.html',
         globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+        cleanupOutdatedCaches: true,
       },
     }),
   ],
