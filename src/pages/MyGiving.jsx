@@ -27,6 +27,7 @@ const BLANK_CONTRIB = {
   reference_no: '',
   notes: '',
   pledge_id: '',
+  project_id: '',
 };
 
 export default function MyGiving() {
@@ -37,6 +38,7 @@ export default function MyGiving() {
   const [pledges, setPledges] = useState([]);
   const [welfare, setWelfare] = useState([]);
   const [family, setFamily] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [famOpen, setFamOpen] = useState(false);
@@ -67,7 +69,7 @@ export default function MyGiving() {
 
     const [{ data: c }, { data: p }, { data: w }, { data: f }] = await Promise.all([
       supabase.from('contributions')
-        .select('id, amount, contribution_type, payment_method, contribution_date, reference_no, notes, pledge_id, recorded_by, verification_status, rejection_reason, projects(name)')
+        .select('id, amount, contribution_type, payment_method, contribution_date, reference_no, notes, pledge_id, project_id, recorded_by, verification_status, rejection_reason, projects(name)')
         .eq('member_id', m.id)
         .order('contribution_date', { ascending: false }),
       supabase.from('pledges')
@@ -90,6 +92,13 @@ export default function MyGiving() {
     setWelfare(w || []);
     setFamily(f || []);
     setLoading(false);
+
+    // Load active projects for the project-contribution selector
+    supabase.from('projects')
+      .select('id, name, status')
+      .in('status', ['active', 'planning'])
+      .order('name')
+      .then(({ data }) => setProjects(data || []));
   }
 
   useEffect(() => { load(); }, [profile?.id]);
@@ -172,6 +181,7 @@ export default function MyGiving() {
       reference_no: c.reference_no || '',
       notes: c.notes || '',
       pledge_id: c.pledge_id || '',
+      project_id: c.project_id || '',
     });
     setContribOpen(true);
   }
@@ -189,6 +199,7 @@ export default function MyGiving() {
       reference_no: c.reference_no || '',
       notes: c.notes || '',
       pledge_id: c.pledge_id || '',
+      project_id: c.project_id || '',
     });
     setContribOpen(true);
   }
@@ -209,8 +220,14 @@ export default function MyGiving() {
       reference_no: contribForm.reference_no || null,
       notes: contribForm.notes || null,
       pledge_id: contribForm.pledge_id || null,
+      project_id: contribForm.contribution_type === 'project' ? (contribForm.project_id || null) : null,
       recorded_by: profile.id,
     };
+
+    if (contribForm.contribution_type === 'project' && !contribForm.project_id) {
+      setContribSaving(false);
+      return toast.error('Please pick a project for this contribution');
+    }
 
     let result;
     if (editingContrib) {
@@ -580,6 +597,28 @@ export default function MyGiving() {
               </select>
             </div>
           </div>
+          {contribForm.contribution_type === 'project' && (
+            <div>
+              <label className="label">Which project? *</label>
+              {projects.length === 0 ? (
+                <p className="text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg p-3">
+                  There are no active projects right now. Pick a different contribution type or ask leadership to open a project.
+                </p>
+              ) : (
+                <select
+                  required
+                  className="input"
+                  value={contribForm.project_id}
+                  onChange={(e) => setContribForm({ ...contribForm, project_id: e.target.value })}
+                >
+                  <option value="">— Select project —</option>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
           <div>
             <label className="label">M-Pesa code / reference</label>
             <input className="input" placeholder="e.g. SLE7XQ8Z2K"
