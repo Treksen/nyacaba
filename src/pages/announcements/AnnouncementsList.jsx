@@ -3,6 +3,7 @@ import { Plus, Megaphone, Pin, Trash2, Edit2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useNotifyError } from '../../lib/useNotifyError';
 import { formatDateTime, timeAgo } from '../../lib/format';
 import PageHeader from '../../components/ui/PageHeader';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -14,6 +15,7 @@ const BLANK = { title: '', body: '', audience: 'all', pinned: false };
 export default function AnnouncementsList() {
   const { isAdminOrChair: isAdmin, profile } = useAuth();
   const toast = useToast();
+  const notifyError = useNotifyError();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -64,7 +66,7 @@ export default function AnnouncementsList() {
       result = await supabase.from('announcements').insert({ ...form, created_by: profile?.id });
     }
     setSaving(false);
-    if (result.error) toast.error(result.error.message);
+    if (result.error) notifyError(result.error, { action: 'AnnouncementsList' });
     else {
       toast.success(editing ? 'Announcement updated' : 'Announcement published');
       setOpen(false);
@@ -75,7 +77,7 @@ export default function AnnouncementsList() {
   async function handleDelete(id) {
     if (!confirm('Delete this announcement?')) return;
     const { error } = await supabase.from('announcements').delete().eq('id', id);
-    if (error) toast.error(error.message); else { toast.success('Deleted'); load(); }
+    if (error) notifyError(error, { action: 'AnnouncementsList' }); else { toast.success('Deleted'); load(); }
   }
 
   return (

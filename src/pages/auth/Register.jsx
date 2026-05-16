@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Phone, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useNotifyError } from '../../lib/useNotifyError';
 import Logo from '../../components/ui/Logo';
 import { CHURCH_NAME } from '../../lib/constants';
 
@@ -10,6 +11,7 @@ export default function Register() {
   const { signUp } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
+  const notifyError = useNotifyError();
   const [form, setForm] = useState({ full_name: '', email: '', phone: '', password: '', confirm: '' });
   const [submitting, setSubmitting] = useState(false);
 
@@ -32,7 +34,7 @@ export default function Register() {
     });
     setSubmitting(false);
     if (error) {
-      toast.error(error.message || 'Could not register');
+      notifyError(error, { action: 'Register' });
     } else {
       toast.success('Account created — pending admin approval');
       navigate('/pending');

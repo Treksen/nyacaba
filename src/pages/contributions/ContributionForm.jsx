@@ -4,6 +4,7 @@ import { ArrowLeft, Save } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useNotifyError } from '../../lib/useNotifyError';
 import { CONTRIBUTION_TYPES, PAYMENT_METHODS, MONTHS } from '../../lib/constants';
 import PageHeader from '../../components/ui/PageHeader';
 
@@ -12,6 +13,7 @@ export default function ContributionForm() {
   const navigate = useNavigate();
   const toast = useToast();
 
+  const notifyError = useNotifyError();
   // Route guard: this form is for staff (admin/chair/treasurer). Members
   // self-record via the "Record contribution" button on /my-giving.
   useEffect(() => {
@@ -101,7 +103,7 @@ export default function ContributionForm() {
     };
     const { error } = await supabase.from('contributions').insert(payload);
     setSaving(false);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'ContributionForm' });
     else {
       toast.success('Contribution recorded');
       navigate('/contributions');

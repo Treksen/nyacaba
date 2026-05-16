@@ -4,6 +4,7 @@ import { Plus, Search, Wallet, Edit2, Trash2, Printer, CheckCircle2, XCircle, Cl
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useNotifyError } from '../../lib/useNotifyError';
 import { formatMoney, formatDate } from '../../lib/format';
 import { CONTRIBUTION_TYPES, PAYMENT_METHODS, MONTHS, VERIFICATION_STATUS } from '../../lib/constants';
 import PageHeader from '../../components/ui/PageHeader';
@@ -14,6 +15,7 @@ export default function ContributionsList() {
   const { canManageFinances: isAdmin, canVerifyContributions, profile } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const toast = useToast();
+  const notifyError = useNotifyError();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState('');
@@ -72,7 +74,7 @@ export default function ContributionsList() {
       .from('contributions')
       .update({ verification_status: 'confirmed', rejection_reason: null })
       .in('id', Array.from(selectedIds));
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'ContributionsList' });
     else {
       toast.success(`${selectedIds.size} verified`);
       setSelectedIds(new Set());
@@ -108,14 +110,14 @@ export default function ContributionsList() {
       notes: form.notes || null,
     }).eq('id', editing.id);
     setSaving(false);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'ContributionsList' });
     else { toast.success('Updated'); setEditing(null); load(); }
   }
 
   async function handleDelete(c) {
     if (!confirm(`Delete the ${formatMoney(c.amount)} contribution from ${c.members?.full_name || 'this member'}? This cannot be undone.`)) return;
     const { error } = await supabase.from('contributions').delete().eq('id', c.id);
-    if (error) toast.error(error.message); else { toast.success('Deleted'); load(); }
+    if (error) notifyError(error, { action: 'ContributionsList' }); else { toast.success('Deleted'); load(); }
   }
 
   async function handleVerify(c) {
@@ -123,7 +125,7 @@ export default function ContributionsList() {
       verification_status: 'confirmed',
       rejection_reason: null,
     }).eq('id', c.id);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'ContributionsList' });
     else { toast.success('Verified'); load(); }
   }
 
@@ -134,7 +136,7 @@ export default function ContributionsList() {
       verification_status: 'rejected',
       rejection_reason: rejectReason.trim(),
     }).eq('id', rejecting.id);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'ContributionsList' });
     else {
       toast.success('Rejected');
       setRejecting(null);

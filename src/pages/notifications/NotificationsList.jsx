@@ -3,6 +3,7 @@ import { Bell, CheckCheck, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useNotifyError } from '../../lib/useNotifyError';
 import { timeAgo } from '../../lib/format';
 import PageHeader from '../../components/ui/PageHeader';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -12,6 +13,7 @@ import { Link } from 'react-router-dom';
 export default function NotificationsList() {
   const { profile } = useAuth();
   const toast = useToast();
+  const notifyError = useNotifyError();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -32,7 +34,7 @@ export default function NotificationsList() {
 
   async function markAllRead() {
     const { error } = await supabase.from('notifications').update({ read: true, read_at: new Date().toISOString() }).eq('user_id', profile.id).eq('read', false);
-    if (error) toast.error(error.message); else { toast.success('All caught up'); load(); }
+    if (error) notifyError(error, { action: 'NotificationsList' }); else { toast.success('All caught up'); load(); }
   }
 
   async function markRead(n) {

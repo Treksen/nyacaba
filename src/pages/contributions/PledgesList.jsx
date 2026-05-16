@@ -3,6 +3,7 @@ import { Plus, HandCoins, Edit2, Trash2, Search } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useNotifyError } from '../../lib/useNotifyError';
 import { formatMoney, formatDate } from '../../lib/format';
 import { PLEDGE_STATUS } from '../../lib/constants';
 import PageHeader from '../../components/ui/PageHeader';
@@ -19,6 +20,7 @@ const BLANK = {
 export default function PledgesList() {
   const { canManageFinances: isAdmin, profile } = useAuth();
   const toast = useToast();
+  const notifyError = useNotifyError();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -96,7 +98,7 @@ export default function PledgesList() {
         status: form.status,
       }).eq('id', editing.id);
       setSaving(false);
-      if (error) toast.error(error.message);
+      if (error) notifyError(error, { action: 'PledgesList' });
       else { toast.success('Pledge updated'); setOpen(false); load(); }
       return;
     }
@@ -117,14 +119,14 @@ export default function PledgesList() {
       created_by: profile?.id,
     });
     setSaving(false);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'PledgesList' });
     else { toast.success('Pledge created'); setOpen(false); load(); }
   }
 
   async function handleDelete(p) {
     if (!confirm(`Delete this pledge of ${formatMoney(p.pledge_amount)} from ${p.members?.full_name || 'this member'}?`)) return;
     const { error } = await supabase.from('pledges').delete().eq('id', p.id);
-    if (error) toast.error(error.message); else { toast.success('Deleted'); load(); }
+    if (error) notifyError(error, { action: 'PledgesList' }); else { toast.success('Deleted'); load(); }
   }
 
   const columns = [

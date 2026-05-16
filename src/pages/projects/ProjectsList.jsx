@@ -4,6 +4,7 @@ import { Plus, Hammer, ArrowRight } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useNotifyError } from '../../lib/useNotifyError';
 import { formatMoney, formatDate } from '../../lib/format';
 import { PROJECT_STATUS } from '../../lib/constants';
 import PageHeader from '../../components/ui/PageHeader';
@@ -15,6 +16,7 @@ import Modal from '../../components/ui/Modal';
 export default function ProjectsList() {
   const { canManageFinances: isAdmin, profile } = useAuth();
   const toast = useToast();
+  const notifyError = useNotifyError();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -48,7 +50,7 @@ export default function ProjectsList() {
       created_by: profile?.id,
     });
     setSaving(false);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'ProjectsList' });
     else {
       toast.success('Project created');
       setOpen(false);

@@ -7,6 +7,7 @@ import {
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useNotifyError } from '../../lib/useNotifyError';
 import { formatMoney, formatDate, formatDateTime } from '../../lib/format';
 import { WELFARE_STATUS, WELFARE_CATEGORIES, roleLabel } from '../../lib/constants';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -22,6 +23,7 @@ export default function WelfareDetail() {
   const { canManageWelfare, isAdmin, isAdminOrChair, profile } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
+  const notifyError = useNotifyError();
   const [req, setReq] = useState(null);
   const [approvals, setApprovals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -112,7 +114,7 @@ export default function WelfareDetail() {
 
     setSubmittingDecision(false);
     if (error) {
-      toast.error(error.message);
+      notifyError(error, { action: 'WelfareDetail' });
     } else {
       toast.success('Decision recorded');
       setDecisionOpen(null);
@@ -130,7 +132,7 @@ export default function WelfareDetail() {
       amount_disbursed: newDisbursed,
       status: 'disbursed',
     }).eq('id', req.id);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'WelfareDetail' });
     else {
       toast.success('Disbursement recorded');
       setDisburseOpen(false);
@@ -145,7 +147,7 @@ export default function WelfareDetail() {
       status: 'closed',
       closed_at: new Date().toISOString(),
     }).eq('id', id);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'WelfareDetail' });
     else { toast.success('Request closed'); load(); }
   }
 
@@ -171,14 +173,14 @@ export default function WelfareDetail() {
       amount_requested: parseFloat(editForm.amount_requested),
     }).eq('id', req.id);
     setSavingEdit(false);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'WelfareDetail' });
     else { toast.success('Request updated'); setEditOpen(false); load(); }
   }
 
   async function handleDelete() {
     if (!confirm('Delete this welfare request? Decision history and disbursement records will be lost. This cannot be undone.')) return;
     const { error } = await supabase.from('welfare_requests').delete().eq('id', id);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'WelfareDetail' });
     else { toast.success('Request deleted'); navigate('/welfare'); }
   }
 

@@ -4,6 +4,7 @@ import { ArrowLeft, Plus, Trash2, Check, Calendar, Banknote, Edit2 } from 'lucid
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useNotifyError } from '../../lib/useNotifyError';
 import { formatMoney, formatDate, formatDateTime } from '../../lib/format';
 import { PROJECT_STATUS } from '../../lib/constants';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -16,6 +17,7 @@ export default function ProjectDetail() {
   const { canManageFinances: isAdmin, profile } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
+  const notifyError = useNotifyError();
   const [project, setProject] = useState(null);
   const [milestones, setMilestones] = useState([]);
   const [expenses, setExpenses] = useState([]);
@@ -65,7 +67,7 @@ export default function ProjectDetail() {
       description: msForm.description || null,
       due_date: msForm.due_date || null,
     });
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'ProjectDetail' });
     else { toast.success('Milestone added'); setMsOpen(false); setMsForm({ title: '', description: '', due_date: '' }); load(); }
   }
 
@@ -74,7 +76,7 @@ export default function ProjectDetail() {
       completed: !m.completed,
       completed_at: !m.completed ? new Date().toISOString() : null,
     }).eq('id', m.id);
-    if (error) toast.error(error.message); else load();
+    if (error) notifyError(error, { action: 'ProjectDetail' }); else load();
   }
 
   async function saveEdit(e) {
@@ -86,20 +88,20 @@ export default function ProjectDetail() {
       progress_pct: parseInt(editForm.progress_pct),
       budget: parseFloat(editForm.budget),
     }).eq('id', id);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'ProjectDetail' });
     else { toast.success('Project updated'); setEditOpen(false); load(); }
   }
 
   async function deleteMilestone(m) {
     if (!confirm(`Delete milestone "${m.title}"?`)) return;
     const { error } = await supabase.from('project_milestones').delete().eq('id', m.id);
-    if (error) toast.error(error.message); else { toast.success('Deleted'); load(); }
+    if (error) notifyError(error, { action: 'ProjectDetail' }); else { toast.success('Deleted'); load(); }
   }
 
   async function deleteExpense(ex) {
     if (!confirm(`Delete expense "${ex.description}" of ${formatMoney(ex.amount)}?`)) return;
     const { error } = await supabase.from('project_expenses').delete().eq('id', ex.id);
-    if (error) toast.error(error.message); else { toast.success('Deleted'); load(); }
+    if (error) notifyError(error, { action: 'ProjectDetail' }); else { toast.success('Deleted'); load(); }
   }
 
   function openExpenseEdit(ex) {
@@ -135,7 +137,7 @@ export default function ProjectDetail() {
       });
     }
     setSavingExpense(false);
-    if (result.error) toast.error(result.error.message);
+    if (result.error) notifyError(result.error, { action: 'ProjectDetail' });
     else {
       toast.success(editingExpense ? 'Expense updated' : 'Expense recorded');
       setExOpen(false);
@@ -148,7 +150,7 @@ export default function ProjectDetail() {
   async function handleDelete() {
     if (!confirm('Delete this project? This cannot be undone.')) return;
     const { error } = await supabase.from('projects').delete().eq('id', id);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'ProjectDetail' });
     else { toast.success('Project deleted'); navigate('/projects'); }
   }
 

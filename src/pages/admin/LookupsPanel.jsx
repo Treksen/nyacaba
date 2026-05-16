@@ -3,6 +3,7 @@ import { Plus, Edit2, Trash2, Users, Package, Settings } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useNotifyError } from '../../lib/useNotifyError';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../../components/ui/PageHeader';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -19,6 +20,7 @@ export default function LookupsPanel() {
   const { isAdmin, isAdminOrChair } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
+  const notifyError = useNotifyError();
   // System Settings is hidden from chair; only admin sees the third tab.
   const TABS = ALL_TABS.filter((t) => !t.adminOnly || isAdmin);
   const [tab, setTab] = useState('welfare_groups');
@@ -41,7 +43,7 @@ export default function LookupsPanel() {
     const table = TABS.find((t) => t.key === tab).table;
     const orderField = tab === 'system_settings' ? 'key' : 'name';
     const { data, error } = await supabase.from(table).select('*').order(orderField);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'LookupsPanel' });
     setRows(data || []);
     setLoading(false);
   }
@@ -85,7 +87,7 @@ export default function LookupsPanel() {
       result = await supabase.from(table).insert(payload);
     }
     setSaving(false);
-    if (result.error) toast.error(result.error.message);
+    if (result.error) notifyError(result.error, { action: 'LookupsPanel' });
     else {
       toast.success(editing ? 'Updated' : 'Created');
       setOpen(false);
@@ -99,7 +101,7 @@ export default function LookupsPanel() {
     const table = TABS.find((t) => t.key === tab).table;
     const pkField = tab === 'system_settings' ? 'key' : 'id';
     const { error } = await supabase.from(table).delete().eq(pkField, row[pkField]);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'LookupsPanel' });
     else { toast.success('Deleted'); load(); }
   }
 

@@ -4,6 +4,7 @@ import { Plus, CalendarDays, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useNotifyError } from '../../lib/useNotifyError';
 import { formatDateTime } from '../../lib/format';
 import { MEETING_STATUS } from '../../lib/constants';
 import PageHeader from '../../components/ui/PageHeader';
@@ -15,6 +16,7 @@ export default function MeetingsList() {
   const { isAdminOrChair: isAdmin, profile } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
+  const notifyError = useNotifyError();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -51,7 +53,7 @@ export default function MeetingsList() {
       created_by: profile?.id,
     });
     setSaving(false);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'MeetingsList' });
     else {
       toast.success('Meeting scheduled');
       setOpen(false);
@@ -63,7 +65,7 @@ export default function MeetingsList() {
   async function handleDelete(m) {
     if (!confirm(`Delete "${m.title}"? Attendance, minutes, action items, and resolutions will all be removed.`)) return;
     const { error } = await supabase.from('meetings').delete().eq('id', m.id);
-    if (error) toast.error(error.message); else { toast.success('Meeting deleted'); load(); }
+    if (error) notifyError(error, { action: 'MeetingsList' }); else { toast.success('Meeting deleted'); load(); }
   }
 
   return (

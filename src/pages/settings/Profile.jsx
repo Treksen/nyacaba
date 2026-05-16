@@ -3,6 +3,7 @@ import { Save, Lock, Camera, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useNotifyError } from '../../lib/useNotifyError';
 import { roleLabel, roleBadgeClass } from '../../lib/constants';
 import { uploadAvatar, removeAvatar } from '../../lib/avatar';
 import PageHeader from '../../components/ui/PageHeader';
@@ -11,6 +12,7 @@ import Avatar from '../../components/ui/Avatar';
 export default function Profile() {
   const { profile, refreshProfile, user } = useAuth();
   const toast = useToast();
+  const notifyError = useNotifyError();
   const [form, setForm] = useState({ full_name: '', phone: '', email: '' });
   const [saving, setSaving] = useState(false);
   const [pwd, setPwd] = useState({ current: '', next: '', confirm: '' });
@@ -36,7 +38,7 @@ export default function Profile() {
       phone: form.phone,
     }).eq('id', profile.id);
     setSaving(false);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'Profile' });
     else { toast.success('Profile updated'); refreshProfile(); }
   }
 
@@ -47,7 +49,7 @@ export default function Profile() {
     setUpdatingPwd(true);
     const { error } = await supabase.auth.updateUser({ password: pwd.next });
     setUpdatingPwd(false);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'Profile' });
     else { toast.success('Password updated'); setPwd({ current: '', next: '', confirm: '' }); }
   }
 
@@ -60,7 +62,7 @@ export default function Profile() {
       await refreshProfile();
       toast.success('Photo updated');
     } catch (err) {
-      toast.error(err.message || 'Could not upload photo');
+      notifyError(err, { action: 'Profile' });
     } finally {
       setUploadingAvatar(false);
       if (fileRef.current) fileRef.current.value = '';
@@ -76,7 +78,7 @@ export default function Profile() {
       await refreshProfile();
       toast.success('Photo removed');
     } catch (err) {
-      toast.error(err.message || 'Could not remove photo');
+      notifyError(err, { action: 'Profile' });
     } finally {
       setUploadingAvatar(false);
     }

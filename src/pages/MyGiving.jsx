@@ -7,6 +7,7 @@ import {
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { useNotifyError } from '../lib/useNotifyError';
 import { formatMoney, formatDate, initials } from '../lib/format';
 import { CONTRIBUTION_TYPES, PLEDGE_STATUS, WELFARE_STATUS, PAYMENT_METHODS, VERIFICATION_STATUS } from '../lib/constants';
 import PageHeader from '../components/ui/PageHeader';
@@ -33,6 +34,7 @@ const BLANK_CONTRIB = {
 export default function MyGiving() {
   const { profile } = useAuth();
   const toast = useToast();
+  const notifyError = useNotifyError();
   const [member, setMember] = useState(null);
   const [contribs, setContribs] = useState([]);
   const [pledges, setPledges] = useState([]);
@@ -154,14 +156,15 @@ export default function MyGiving() {
       result = await supabase.from('member_family').insert(payload);
     }
     setFamSaving(false);
-    if (result.error) toast.error(result.error.message);
+    if (result.error) notifyError(result.error, { action: 'save_family_member', editing: !!editingFam });
     else { toast.success(editingFam ? 'Updated' : 'Added'); setFamOpen(false); load(); }
   }
 
   async function deleteFam(f) {
     if (!confirm(`Remove ${f.related_name}?`)) return;
     const { error } = await supabase.from('member_family').delete().eq('id', f.id);
-    if (error) toast.error(error.message); else { toast.success('Removed'); load(); }
+    if (error) notifyError(error, { action: 'delete_family_member', family_id: f.id });
+    else { toast.success('Removed'); load(); }
   }
 
   function startCreateContrib() {
@@ -237,7 +240,10 @@ export default function MyGiving() {
       result = await supabase.from('contributions').insert(payload);
     }
     setContribSaving(false);
-    if (result.error) toast.error(result.error.message);
+    if (result.error) notifyError(result.error, {
+      action: editingContrib ? 'update_contribution' : 'create_contribution',
+      contribution_id: editingContrib?.id,
+    });
     else {
       toast.success(editingContrib ? 'Updated — still pending verification' : 'Submitted! Awaiting treasurer verification.');
       setContribOpen(false);
@@ -249,7 +255,7 @@ export default function MyGiving() {
     if (c.verification_status !== 'pending' || c.recorded_by !== profile.id) return;
     if (!confirm('Delete this pending contribution? You can resubmit if needed.')) return;
     const { error } = await supabase.from('contributions').delete().eq('id', c.id);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'delete_pending_contribution', contribution_id: c.id });
     else { toast.success('Deleted'); load(); }
   }
 
@@ -475,7 +481,7 @@ export default function MyGiving() {
             </button>
           </div>
           {family.length === 0 ? (
-            <p className="text-sm text-ink-600">No family records yet. Add spouse, children or dependents so the welfare team can support your household when needed.</p>
+            <p className="text-sm text-ink-600">No family records yet.</p>
           ) : (
             <ul className="divide-y divide-cream-200">
               {family.map((f) => (
@@ -625,7 +631,7 @@ export default function MyGiving() {
             <input className="input" placeholder="e.g. SLE7XQ8Z2K"
               value={contribForm.reference_no}
               onChange={(e) => setContribForm({ ...contribForm, reference_no: e.target.value })} />
-            <p className="text-xs text-ink-500 mt-1">Highly recommended — speeds up verification</p>
+            <p className="text-xs text-ink-500 mt-1">Highly recommended</p>
           </div>
           {openPledges.length > 0 && (
             <div>

@@ -33,8 +33,10 @@ import Profile from './pages/settings/Profile';
 import AdminPanel from './pages/settings/AdminPanel';
 import LookupsPanel from './pages/admin/LookupsPanel';
 import AuditLog from './pages/admin/AuditLog';
+import ErrorLogs from './pages/admin/ErrorLogs';
 import MyGiving from './pages/MyGiving';
 import ContributionReceipt from './pages/contributions/ContributionReceipt';
+import ErrorBoundary from './components/ErrorBoundary';
 
 export default function App() {
   const { loading, session } = useAuth();
@@ -48,6 +50,7 @@ export default function App() {
   }
 
   return (
+    <ErrorBoundary>
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
@@ -85,11 +88,13 @@ export default function App() {
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/admin/lookups" element={<LookupsPanel />} />
         <Route path="/admin/audit" element={<AuditLog />} />
+        <Route path="/admin/errors" element={<ErrorLogs />} />
         <Route path="/my-giving" element={<MyGiving />} />
         <Route path="/receipt/:id" element={<ContributionReceipt />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </ErrorBoundary>
   );
 }

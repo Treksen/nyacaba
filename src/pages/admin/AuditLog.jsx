@@ -4,6 +4,7 @@ import { Search, History, ChevronDown, ChevronRight, Plus, Pencil, Trash2 } from
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useNotifyError } from '../../lib/useNotifyError';
 import { formatDateTime, timeAgo, initials } from '../../lib/format';
 import PageHeader from '../../components/ui/PageHeader';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -42,6 +43,7 @@ export default function AuditLog() {
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
+  const notifyError = useNotifyError();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState({});
@@ -66,7 +68,7 @@ export default function AuditLog() {
     if (entityFilter) query = query.eq('entity_type', entityFilter);
     if (actionFilter) query = query.eq('action', actionFilter);
     const { data, error } = await query;
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'AuditLog' });
     setRows(data || []);
     setLoading(false);
   }

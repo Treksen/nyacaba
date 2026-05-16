@@ -4,6 +4,7 @@ import { ArrowLeft, Save } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useNotifyError } from '../../lib/useNotifyError';
 import PageHeader from '../../components/ui/PageHeader';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
@@ -33,6 +34,7 @@ export default function MemberForm() {
   const { isAdminOrChair: isAdmin } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
+  const notifyError = useNotifyError();
   const [form, setForm] = useState(BLANK);
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(isEdit);
@@ -89,7 +91,7 @@ export default function MemberForm() {
     }
     setSaving(false);
     if (result.error) {
-      toast.error(result.error.message);
+      notifyError(result.error, { action: 'MemberForm' });
     } else {
       toast.success(isEdit ? 'Member updated' : 'Member added');
       navigate(`/members/${result.data.id}`);

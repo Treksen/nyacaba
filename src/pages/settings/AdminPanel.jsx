@@ -4,6 +4,7 @@ import { CheckCircle2, XCircle, ShieldCheck, ShieldOff, UserCheck, Users, Power,
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useNotifyError } from '../../lib/useNotifyError';
 import { formatDate, formatDateTime, initials } from '../../lib/format';
 import { ROLES, roleLabel, roleBadgeClass } from '../../lib/constants';
 import PageHeader from '../../components/ui/PageHeader';
@@ -16,6 +17,7 @@ export default function AdminPanel() {
   const { isAdmin, isAdminOrChair, profile } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
+  const notifyError = useNotifyError();
   const [pending, setPending] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -56,8 +58,11 @@ export default function AdminPanel() {
       .eq("id", userId)
       .single();
 
-    if (fetchError || !userProfile) {
-      return toast.error("Could not fetch user profile");
+    if (fetchError) {
+      return notifyError(fetchError, { action: 'fetch_user_profile_for_approval', user_id: userId });
+    }
+    if (!userProfile) {
+      return toast.error("User profile not found");
     }
 
     // 1. Approve profile
@@ -71,7 +76,7 @@ export default function AdminPanel() {
       .eq("id", userId);
 
     if (approveError) {
-      return toast.error(approveError.message);
+      return notifyError(approveError, { action: 'AdminPanel' });
     }
 
     // 2. Check if member already exists
@@ -93,7 +98,7 @@ export default function AdminPanel() {
       });
 
       if (memberError) {
-        return toast.error(memberError.message);
+        return notifyError(memberError, { action: 'AdminPanel' });
       }
     }
 
@@ -108,14 +113,14 @@ export default function AdminPanel() {
       approved_by: profile.id,
       approved_at: new Date().toISOString(),
     }).eq('id', userId);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'AdminPanel' });
     else { toast.success('User rejected'); load(); }
   }
 
   async function toggleAdmin(user) {
     const newRole = user.role === 'admin' ? 'member' : 'admin';
     const { error } = await supabase.from('profiles').update({ role: newRole }).eq('id', user.id);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'AdminPanel' });
     else { toast.success(`Role changed to ${newRole}`); load(); }
   }
 
@@ -127,7 +132,7 @@ export default function AdminPanel() {
   async function saveRole() {
     if (!roleEditUser) return;
     const { error } = await supabase.from('profiles').update({ role: roleEditValue }).eq('id', roleEditUser.id);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'AdminPanel' });
     else {
       toast.success(`Role set to ${roleEditValue}`);
       setRoleEditUser(null);
@@ -138,7 +143,7 @@ export default function AdminPanel() {
   async function deactivate(user) {
     if (!confirm(`Deactivate ${user.full_name}? They won't be able to access the system, but their record stays for the audit trail.`)) return;
     const { error } = await supabase.from('profiles').update({ approval_status: 'inactive' }).eq('id', user.id);
-    if (error) toast.error(error.message); else { toast.success('User deactivated'); load(); }
+    if (error) notifyError(error, { action: 'AdminPanel' }); else { toast.success('User deactivated'); load(); }
   }
 
   async function reactivate(user) {
@@ -147,19 +152,19 @@ export default function AdminPanel() {
       approved_by: profile.id,
       approved_at: new Date().toISOString(),
     }).eq('id', user.id);
-    if (error) toast.error(error.message); else { toast.success('User reactivated'); load(); }
+    if (error) notifyError(error, { action: 'AdminPanel' }); else { toast.success('User reactivated'); load(); }
   }
 
   async function deleteUser(user) {
     if (!confirm(`Permanently delete ${user.full_name}'s profile? Their auth account in Supabase will remain (delete it from Supabase → Authentication → Users to fully remove). This cannot be undone.`)) return;
     const { error } = await supabase.from('profiles').delete().eq('id', user.id);
-    if (error) toast.error(error.message); else { toast.success('Profile deleted'); load(); }
+    if (error) notifyError(error, { action: 'AdminPanel' }); else { toast.success('Profile deleted'); load(); }
   }
 
   async function linkToMember(memberId) {
     if (!linkUser) return;
     const { error } = await supabase.from('members').update({ profile_id: linkUser.id }).eq('id', memberId);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'AdminPanel' });
     else {
       toast.success('Linked to member');
       setLinkOpen(false);

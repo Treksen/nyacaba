@@ -4,6 +4,7 @@ import { ArrowLeft, MapPin, Calendar, FileText, ListTodo, Vote, Plus, Trash2, Ch
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useNotifyError } from '../../lib/useNotifyError';
 import { formatDate, formatDateTime } from '../../lib/format';
 import { MEETING_STATUS, RESOLUTION_STATUS } from '../../lib/constants';
 import { uploadMeetingMinutesPdf, removeMeetingMinutesPdf } from '../../lib/meetingMinutes';
@@ -17,6 +18,7 @@ export default function MeetingDetail() {
   const { isAdminOrChair: isAdmin, profile } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
+  const notifyError = useNotifyError();
   const [meeting, setMeeting] = useState(null);
   const [attendance, setAttendance] = useState([]);
   const [minutes, setMinutes] = useState(null);
@@ -59,19 +61,19 @@ export default function MeetingDetail() {
 
   async function setStatus(status) {
     const { error } = await supabase.from('meetings').update({ status }).eq('id', id);
-    if (error) toast.error(error.message); else { toast.success('Status updated'); load(); }
+    if (error) notifyError(error, { action: 'MeetingDetail' }); else { toast.success('Status updated'); load(); }
   }
 
   async function toggleAttendance(memberId, status = 'present') {
     const existing = attendance.find((a) => a.member_id === memberId);
     if (existing) {
       const { error } = await supabase.from('meeting_attendance').update({ status }).eq('id', existing.id);
-      if (error) return toast.error(error.message);
+      if (error) return notifyError(error, { action: 'MeetingDetail' });
     } else {
       const { error } = await supabase.from('meeting_attendance').insert({
         meeting_id: id, member_id: memberId, status,
       });
-      if (error) return toast.error(error.message);
+      if (error) return notifyError(error, { action: 'MeetingDetail' });
     }
     load();
   }
@@ -84,7 +86,7 @@ export default function MeetingDetail() {
     } else {
       ({ error } = await supabase.from('meeting_minutes').insert(payload));
     }
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'MeetingDetail' });
     else { toast.success('Minutes saved'); setMinOpen(false); load(); }
   }
 
@@ -114,7 +116,7 @@ export default function MeetingDetail() {
       toast.success('Minutes PDF uploaded');
       await load();
     } catch (err) {
-      toast.error(err.message || 'Could not upload PDF');
+      notifyError(err, { action: 'MeetingDetail' });
     } finally {
       setUploadingPdf(false);
       if (pdfInputRef.current) pdfInputRef.current.value = '';
@@ -135,7 +137,7 @@ export default function MeetingDetail() {
       toast.success('PDF removed');
       await load();
     } catch (err) {
-      toast.error(err.message || 'Could not remove PDF');
+      notifyError(err, { action: 'MeetingDetail' });
     } finally {
       setUploadingPdf(false);
     }
@@ -149,7 +151,7 @@ export default function MeetingDetail() {
       assigned_to: actionForm.assigned_to || null,
       due_date: actionForm.due_date || null,
     });
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'MeetingDetail' });
     else {
       toast.success('Action added');
       setActionOpen(false);
@@ -163,7 +165,7 @@ export default function MeetingDetail() {
       completed: !action.completed,
       completed_at: !action.completed ? new Date().toISOString() : null,
     }).eq('id', action.id);
-    if (error) toast.error(error.message); else load();
+    if (error) notifyError(error, { action: 'MeetingDetail' }); else load();
   }
 
   async function addResolution(e) {
@@ -176,7 +178,7 @@ export default function MeetingDetail() {
       voting_opens_at: new Date().toISOString(),
       created_by: profile?.id,
     });
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'MeetingDetail' });
     else {
       toast.success('Resolution opened for voting');
       setResOpen(false);
@@ -192,32 +194,32 @@ export default function MeetingDetail() {
       voter_id: profile.id,
       choice,
     }, { onConflict: 'resolution_id,voter_id' });
-    if (error) toast.error(error.message); else { toast.success('Vote recorded'); load(); }
+    if (error) notifyError(error, { action: 'MeetingDetail' }); else { toast.success('Vote recorded'); load(); }
   }
 
   async function deleteAction(action) {
     if (!confirm(`Delete the action item "${action.title}"?`)) return;
     const { error } = await supabase.from('action_items').delete().eq('id', action.id);
-    if (error) toast.error(error.message); else { toast.success('Deleted'); load(); }
+    if (error) notifyError(error, { action: 'MeetingDetail' }); else { toast.success('Deleted'); load(); }
   }
 
   async function deleteResolution(res) {
     if (!confirm(`Delete the resolution "${res.title}"? Votes will be lost.`)) return;
     const { error } = await supabase.from('resolutions').delete().eq('id', res.id);
-    if (error) toast.error(error.message); else { toast.success('Deleted'); load(); }
+    if (error) notifyError(error, { action: 'MeetingDetail' }); else { toast.success('Deleted'); load(); }
   }
 
   async function deleteMinutes() {
     if (!minutes) return;
     if (!confirm('Delete the minutes for this meeting?')) return;
     const { error } = await supabase.from('meeting_minutes').delete().eq('id', minutes.id);
-    if (error) toast.error(error.message); else { toast.success('Minutes deleted'); load(); }
+    if (error) notifyError(error, { action: 'MeetingDetail' }); else { toast.success('Minutes deleted'); load(); }
   }
 
   async function deleteMeeting() {
     if (!confirm(`Delete "${meeting?.title}"? Attendance, minutes, action items and resolutions for this meeting will all be removed.`)) return;
     const { error } = await supabase.from('meetings').delete().eq('id', id);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'MeetingDetail' });
     else { toast.success('Meeting deleted'); navigate('/meetings'); }
   }
 

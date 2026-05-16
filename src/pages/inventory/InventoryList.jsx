@@ -4,6 +4,7 @@ import { Plus, Search, Package, AlertTriangle, Edit2, Trash2 } from 'lucide-reac
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useNotifyError } from '../../lib/useNotifyError';
 import { formatMoney, formatNumber } from '../../lib/format';
 import { ITEM_CONDITION } from '../../lib/constants';
 import PageHeader from '../../components/ui/PageHeader';
@@ -20,6 +21,7 @@ export default function InventoryList() {
   const { isAdminOrChair: isAdmin, profile } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
+  const notifyError = useNotifyError();
   const [rows, setRows] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -95,7 +97,7 @@ export default function InventoryList() {
       result = await supabase.from('inventory_items').insert(payload);
     }
     setSaving(false);
-    if (result.error) toast.error(result.error.message);
+    if (result.error) notifyError(result.error, { action: 'InventoryList' });
     else {
       toast.success(editing ? 'Item updated' : 'Item added');
       setOpen(false);
@@ -106,7 +108,7 @@ export default function InventoryList() {
   async function handleDelete(item) {
     if (!confirm(`Delete "${item.name}"? Transaction history will be lost.`)) return;
     const { error } = await supabase.from('inventory_items').delete().eq('id', item.id);
-    if (error) toast.error(error.message); else { toast.success('Deleted'); load(); }
+    if (error) notifyError(error, { action: 'InventoryList' }); else { toast.success('Deleted'); load(); }
   }
 
   const filtered = rows.filter((r) => {

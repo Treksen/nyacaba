@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Wallet, HandCoins, HeartHandshake,
   Package, CalendarDays, Hammer, Megaphone, Bell,
-  BarChart3, UserCog, ShieldCheck, Settings, History, Sparkles, X
+  BarChart3, UserCog, ShieldCheck, Settings, History, Sparkles, X, AlertTriangle
 } from 'lucide-react';
 import Logo from '../ui/Logo';
 import { CHURCH_NAME } from '../../lib/constants';
@@ -188,6 +188,25 @@ export default function Sidebar({ open, onClose }) {
                 >
                   <History size={18} strokeWidth={1.8} />
                   <span>Audit Log</span>
+                </NavLink>
+              </li>
+            )}
+            {isAdmin && (
+              <li>
+                <NavLink
+                  to="/admin/errors"
+                  onClick={onClose}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
+                     ${
+                       isActive
+                         ? "bg-cream-50 text-primary-900"
+                         : "text-cream-100/85 hover:bg-primary-800/60"
+                     }`
+                  }
+                >
+                  <AlertTriangle size={18} strokeWidth={1.8} />
+                  <span>Error Logs</span>
                 </NavLink>
               </li>
             )}

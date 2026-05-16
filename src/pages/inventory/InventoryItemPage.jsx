@@ -4,6 +4,7 @@ import { ArrowLeft, Plus, Package, Trash2, Edit2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useNotifyError } from '../../lib/useNotifyError';
 import { formatMoney, formatNumber, formatDateTime } from '../../lib/format';
 import { TXN_TYPES, ITEM_CONDITION } from '../../lib/constants';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -15,6 +16,7 @@ export default function InventoryItemPage() {
   const { isAdminOrChair: isAdmin, profile } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
+  const notifyError = useNotifyError();
   const [item, setItem] = useState(null);
   const [txns, setTxns] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -61,7 +63,7 @@ export default function InventoryItemPage() {
     };
     const { error } = await supabase.from('inventory_transactions').insert(payload);
     setSaving(false);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'InventoryItemPage' });
     else {
       toast.success('Transaction recorded');
       setOpen(false);
@@ -73,7 +75,7 @@ export default function InventoryItemPage() {
   async function handleDelete() {
     if (!confirm('Delete this item? Transaction history will be lost.')) return;
     const { error } = await supabase.from('inventory_items').delete().eq('id', id);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'InventoryItemPage' });
     else {
       toast.success('Item deleted');
       navigate('/inventory');
@@ -110,14 +112,14 @@ export default function InventoryItemPage() {
       description: editForm.description || null,
     }).eq('id', id);
     setSavingEdit(false);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'InventoryItemPage' });
     else { toast.success('Item updated'); setEditOpen(false); load(); }
   }
 
   async function deleteTxn(txn) {
     if (!confirm('Delete this transaction? Item quantity will NOT auto-reverse — adjust manually if needed.')) return;
     const { error } = await supabase.from('inventory_transactions').delete().eq('id', txn.id);
-    if (error) toast.error(error.message); else { toast.success('Transaction deleted'); load(); }
+    if (error) notifyError(error, { action: 'InventoryItemPage' }); else { toast.success('Transaction deleted'); load(); }
   }
 
   if (loading) return <div className="flex justify-center py-20"><LoadingSpinner /></div>;

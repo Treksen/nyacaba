@@ -4,6 +4,7 @@ import { ArrowLeft, Save } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useNotifyError } from '../../lib/useNotifyError';
 import { WELFARE_CATEGORIES, URGENCY } from '../../lib/constants';
 import PageHeader from '../../components/ui/PageHeader';
 
@@ -12,6 +13,7 @@ export default function WelfareRequestForm() {
   const navigate = useNavigate();
   const location = useLocation();
   const toast = useToast();
+  const notifyError = useNotifyError();
   const prefill = location.state?.prefill || {};
   const [members, setMembers] = useState([]);
   const [myMember, setMyMember] = useState(null);
@@ -114,7 +116,7 @@ export default function WelfareRequestForm() {
       submitted_by: profile?.id,
     });
     setSaving(false);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'WelfareRequestForm' });
     else {
       clearDraft();
       toast.success('Welfare request submitted');

@@ -4,6 +4,7 @@ import { ArrowLeft, Edit2, Phone, Mail, MapPin, Users as UsersIcon, FileText, Tr
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useNotifyError } from '../../lib/useNotifyError';
 import { formatMoney, formatDate, initials } from '../../lib/format';
 import PageHeader from '../../components/ui/PageHeader';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -16,6 +17,7 @@ export default function MemberDetail() {
   const { isAdminOrChair: isAdmin, isStaff, profile } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
+  const notifyError = useNotifyError();
   const [member, setMember] = useState(null);
   const [contribs, setContribs] = useState([]);
   const [pledges, setPledges] = useState([]);
@@ -68,7 +70,7 @@ export default function MemberDetail() {
   async function handleDelete() {
     if (!confirm('Delete this member? This cannot be undone.')) return;
     const { error } = await supabase.from('members').delete().eq('id', id);
-    if (error) toast.error(error.message);
+    if (error) notifyError(error, { action: 'MemberDetail' });
     else {
       toast.success('Member deleted');
       navigate('/members');

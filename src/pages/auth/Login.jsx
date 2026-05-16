@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Mail, Lock, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useNotifyError } from '../../lib/useNotifyError';
 import Logo from '../../components/ui/Logo';
 import { CHURCH_NAME } from '../../lib/constants';
 
@@ -11,6 +12,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const toast = useToast();
+  const notifyError = useNotifyError();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -28,7 +30,7 @@ export default function Login() {
     const { error } = await signIn(email, password);
     setSubmitting(false);
     if (error) {
-      toast.error(error.message || 'Could not sign in');
+      notifyError(error, { action: 'Login' });
     } else {
       toast.success('Welcome back!');
     }
