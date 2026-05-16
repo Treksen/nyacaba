@@ -382,7 +382,7 @@ export default function ContributionsList() {
               <CheckCircle2 size={14}/> Verify {selectedIds.size > 0 ? `selected (${selectedIds.size})` : 'selected'}
             </button>
             <p className="text-xs text-ink-600 ml-auto">
-              Tip: filter by date or type first, then "Select all pending" to bulk-verify a batch (e.g. monthly contributions for last Sunday).
+              Tip: filter by date or type first, then "Select all pending" to bulk-verify a batch.
             </p>
           </div>
         </div>
