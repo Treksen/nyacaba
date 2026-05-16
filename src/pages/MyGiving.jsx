@@ -94,10 +94,11 @@ export default function MyGiving() {
     setLoading(false);
 
     // Load active projects for the project-contribution selector
-    supabase.from('projects')
-      .select('id, name, status')
-      .in('status', ['active', 'planning'])
-      .order('name')
+    supabase
+      .from("projects")
+      .select("id, name, status")
+      .in("status", ["active", "planning", "planning"])
+      .order("name")
       .then(({ data }) => setProjects(data || []));
   }
 
