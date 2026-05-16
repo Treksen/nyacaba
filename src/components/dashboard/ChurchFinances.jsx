@@ -87,10 +87,10 @@ export default function ChurchFinances() {
     <div className="card-padded">
       <div className="flex items-start justify-between mb-1">
         <div>
-          <p className="kicker">Church Transparency</p>
-          <h3 className="font-display text-xl font-semibold">Church finances</h3>
+          <p className="kicker">Welfare finances</p>
+          {/* <h3 className="font-display text-xl font-semibold"></h3> */}
           <p className="text-xs text-ink-600 mt-0.5">
-            Aggregate giving — no individual amounts shown.
+            Aggregate giving totals and trends across the Team. 
           </p>
         </div>
       </div>
@@ -116,8 +116,11 @@ export default function ChurchFinances() {
             {formatMoney(thisMonth)}
           </p>
           {TrendIcon && (
-            <p className={`text-xs flex items-center gap-1 mt-0.5 ${monthChange >= 0 ? 'text-primary-700' : 'text-rose-700'}`}>
-              <TrendIcon size={12}/> {monthChange >= 0 ? '+' : ''}{monthChange.toFixed(0)}% vs last
+            <p
+              className={`text-xs flex items-center gap-1 mt-0.5 ${monthChange >= 0 ? "text-primary-700" : "text-rose-700"}`}
+            >
+              <TrendIcon size={12} /> {monthChange >= 0 ? "+" : ""}
+              {monthChange.toFixed(0)}% vs last
             </p>
           )}
         </div>
@@ -132,7 +135,8 @@ export default function ChurchFinances() {
       {/* Member count strip */}
       <div className="mt-3 flex items-center gap-3 text-xs text-ink-600">
         <span>
-          <strong className="text-ink-900">{data.active_members}</strong> active member{data.active_members === 1 ? '' : 's'}
+          <strong className="text-ink-900">{data.active_members}</strong> active
+          member{data.active_members === 1 ? "" : "s"}
         </span>
         <span>·</span>
         <span>{data.total_members} on roll</span>
@@ -152,8 +156,8 @@ export default function ChurchFinances() {
                 onClick={() => setPeriod(p.key)}
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition ${
                   period === p.key
-                    ? 'bg-white text-primary-900 shadow-sm'
-                    : 'text-ink-600 hover:text-ink-900'
+                    ? "bg-white text-primary-900 shadow-sm"
+                    : "text-ink-600 hover:text-ink-900"
                 }`}
               >
                 {p.label}
@@ -169,22 +173,34 @@ export default function ChurchFinances() {
         ) : (
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E8DFD0" vertical={false} />
+              <LineChart
+                data={chartData}
+                margin={{ top: 10, right: 12, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#E8DFD0"
+                  vertical={false}
+                />
                 <XAxis
                   dataKey="label"
-                  tick={{ fontSize: 11, fill: '#6E6555' }}
+                  tick={{ fontSize: 11, fill: "#6E6555" }}
                   axisLine={false}
                   tickLine={false}
-                  interval={period === 'day' ? 1 : 0}
+                  interval={period === "day" ? 1 : 0}
                 />
                 <YAxis
-                  tick={{ fontSize: 11, fill: '#6E6555' }}
+                  tick={{ fontSize: 11, fill: "#6E6555" }}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}K` : v}
+                  tickFormatter={(v) =>
+                    v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v
+                  }
                 />
-                <Tooltip formatter={(v) => formatMoney(v)} labelClassName="!text-ink-900" />
+                <Tooltip
+                  formatter={(v) => formatMoney(v)}
+                  labelClassName="!text-ink-900"
+                />
                 <Line
                   type="monotone"
                   dataKey="total"
@@ -253,15 +269,23 @@ export default function ChurchFinances() {
           <p className="kicker mb-2">This Year by Type</p>
           <ul className="space-y-1.5">
             {typeList.map((t) => {
-              const pct = data.this_year_total > 0 ? (t.total / Number(data.this_year_total)) * 100 : 0;
+              const pct =
+                data.this_year_total > 0
+                  ? (t.total / Number(data.this_year_total)) * 100
+                  : 0;
               return (
                 <li key={t.key} className="text-sm">
                   <div className="flex items-center justify-between mb-0.5">
                     <span className="text-ink-800">{t.label}</span>
-                    <span className="font-semibold text-primary-900 tabular-nums">{formatMoney(t.total)}</span>
+                    <span className="font-semibold text-primary-900 tabular-nums">
+                      {formatMoney(t.total)}
+                    </span>
                   </div>
                   <div className="h-1.5 rounded-full bg-cream-200 overflow-hidden">
-                    <div className="h-full bg-primary-700 rounded-full" style={{ width: `${pct}%` }} />
+                    <div
+                      className="h-full bg-primary-700 rounded-full"
+                      style={{ width: `${pct}%` }}
+                    />
                   </div>
                 </li>
               );

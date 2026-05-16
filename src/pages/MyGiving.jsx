@@ -271,8 +271,7 @@ export default function MyGiving() {
           </div>
           <h3 className="text-lg font-display font-semibold mb-1">No member record linked yet</h3>
           <p className="text-sm text-ink-600 max-w-md mx-auto">
-            Your account isn't yet linked to a member record. Please ask an administrator to link your account
-            so your contributions, pledges and family records appear here.
+            Your account isn't yet linked to a member record.
           </p>
         </div>
       </>
@@ -609,7 +608,7 @@ export default function MyGiving() {
               <label className="label">Which project? *</label>
               {projects.length === 0 ? (
                 <p className="text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg p-3">
-                  There are no active projects right now. Pick a different contribution type or ask leadership to open a project.
+                  There are no active projects right now.
                 </p>
               ) : (
                 <select
