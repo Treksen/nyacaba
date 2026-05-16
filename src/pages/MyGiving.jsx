@@ -97,7 +97,7 @@ export default function MyGiving() {
     supabase
       .from("projects")
       .select("id, name, status")
-      .in("status", ["active", "planning", "planning"])
+      .in("status", ["active", "planning", "completed"])
       .order("name")
       .then(({ data }) => setProjects(data || []));
   }
