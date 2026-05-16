@@ -48,9 +48,18 @@ export default function ChurchFinances() {
   const chartData = useMemo(() => {
     if (!data) return [];
     switch (period) {
-      case 'day':   return (data.daily_breakdown   || []).map((d) => ({ label: d.label, total: Number(d.total || 0) }));
-      case 'week':  return (data.weekly_breakdown  || []).map((d) => ({ label: d.label, total: Number(d.total || 0) }));
-      case 'month': return (data.monthly_breakdown || []).map((d) => ({ label: d.month, total: Number(d.total || 0) }));
+      case 'day':   return (data.daily_breakdown || []).map((d) => ({
+        label: d.label.slice(0, 3),
+        total: Number(d.total || 0),
+      }));
+      case 'week':  return (data.weekly_breakdown || []).map((d) => ({
+        label: d.label.slice(3, 9),
+        total: Number(d.total || 0),
+      }));
+      case 'month': return (data.monthly_breakdown || []).map((d) => ({
+        label: d.month,
+        total: Number(d.total || 0),
+      }));
       case 'year':  return (data.yearly_breakdown  || []).map((d) => ({ label: d.label, total: Number(d.total || 0) }));
       default:      return [];
     }
@@ -58,7 +67,7 @@ export default function ChurchFinances() {
 
   if (loading) return (
     <div className="card-padded flex justify-center py-10">
-      <LoadingSpinner label="Loading church totals…" />
+      <LoadingSpinner label="Loading totals…" />
     </div>
   );
 
@@ -90,7 +99,7 @@ export default function ChurchFinances() {
           <p className="kicker">Welfare finances</p>
           {/* <h3 className="font-display text-xl font-semibold"></h3> */}
           <p className="text-xs text-ink-600 mt-0.5">
-            Aggregate giving totals and trends across the Team. 
+            Aggregate giving totals and trends across the Team.
           </p>
         </div>
       </div>
@@ -171,7 +180,7 @@ export default function ChurchFinances() {
             No confirmed contributions in this period yet.
           </div>
         ) : (
-          <div className="h-48">
+          <div className="h-56 sm:h-48">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={chartData}
@@ -184,10 +193,17 @@ export default function ChurchFinances() {
                 />
                 <XAxis
                   dataKey="label"
-                  tick={{ fontSize: 11, fill: "#6E6555" }}
                   axisLine={false}
                   tickLine={false}
-                  interval={period === "day" ? 1 : 0}
+                  minTickGap={12}
+                  interval="preserveStartEnd"
+                  tick={{
+                    fontSize: window.innerWidth < 640 ? 9 : 11,
+                    fill: "#6E6555",
+                  }}
+                  angle={window.innerWidth < 640 ? -25 : 0}
+                  textAnchor={window.innerWidth < 640 ? "end" : "middle"}
+                  height={window.innerWidth < 640 ? 50 : 30}
                 />
                 <YAxis
                   tick={{ fontSize: 11, fill: "#6E6555" }}

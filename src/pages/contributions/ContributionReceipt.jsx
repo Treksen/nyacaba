@@ -81,7 +81,7 @@ export default function ContributionReceipt() {
           <div className="flex items-center gap-3">
             <Logo size={56} />
             <div>
-              <p className="kicker">{CHURCH_NAME} Church</p>
+              <p className="kicker">{CHURCH_NAME} Welfare Sytem</p>
               <h1 className="font-display text-3xl font-semibold">Official Receipt</h1>
               <p className="text-xs text-ink-600 mt-1">For your records</p>
             </div>
