@@ -111,7 +111,7 @@ export default function ChurchFinances() {
         <p className="kicker">FINANCES</p>
         <h3 className="font-display text-xl font-semibold">Welfare finances</h3>
         <p className="text-xs text-ink-600 mt-0.5">
-          Aggregate giving and spending — no individual amounts shown.
+          Aggregate giving and spending.
         </p>
       </div>
 
