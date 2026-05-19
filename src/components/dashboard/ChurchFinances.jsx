@@ -108,8 +108,8 @@ export default function ChurchFinances() {
   return (
     <div className="card-padded">
       <div>
-        <p className="kicker">Church Transparency</p>
-        <h3 className="font-display text-xl font-semibold">Church finances</h3>
+        <p className="kicker">FINANCES</p>
+        <h3 className="font-display text-xl font-semibold">Welfare finances</h3>
         <p className="text-xs text-ink-600 mt-0.5">
           Aggregate giving and spending — no individual amounts shown.
         </p>
