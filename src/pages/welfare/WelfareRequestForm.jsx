@@ -26,7 +26,7 @@ export default function WelfareRequestForm() {
     if (prefill.title || prefill.description) {
       return {
         member_id: '',
-        category: prefill.category || 'medical',
+        category: prefill.category || 'hospital',
         title: prefill.title || '',
         description: prefill.description || '',
         amount_requested: prefill.amount_requested || '',
@@ -40,7 +40,7 @@ export default function WelfareRequestForm() {
     } catch (_) { /* ignore */ }
     return {
       member_id: '',
-      category: 'medical',
+      category: 'hospital',
       title: '',
       description: '',
       amount_requested: '',
@@ -147,7 +147,7 @@ export default function WelfareRequestForm() {
                 type="button"
                 onClick={() => {
                   clearDraft();
-                  setForm({ member_id: '', category: 'medical', title: '', description: '', amount_requested: '', urgency: 'medium' });
+                  setForm({ member_id: '', category: 'hospital', title: '', description: '', amount_requested: '', urgency: 'medium' });
                   setDraftRestored(false);
                 }}
                 className="mt-1 text-xs font-medium text-rose-700 hover:text-rose-900 underline"

@@ -36,7 +36,10 @@ import AuditLog from './pages/admin/AuditLog';
 import ErrorLogs from './pages/admin/ErrorLogs';
 import MyGiving from './pages/MyGiving';
 import ContributionReceipt from './pages/contributions/ContributionReceipt';
-import ErrorBoundary from './components/ErrorBoundary';
+import ExpensesList from './pages/expenses/ExpensesList';
+import ExpenseForm from './pages/expenses/ExpenseForm';
+import ExpenseDetail from './pages/expenses/ExpenseDetail';
+// import ErrorBoundary from './components/ErrorBoundary';
 
 export default function App() {
   const { loading, session } = useAuth();
@@ -50,7 +53,7 @@ export default function App() {
   }
 
   return (
-    <ErrorBoundary>
+    // <ErrorBoundary>
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
@@ -66,6 +69,10 @@ export default function App() {
         <Route path="/contributions" element={<ContributionsList />} />
         <Route path="/contributions/new" element={<ContributionForm />} />
         <Route path="/pledges" element={<PledgesList />} />
+        <Route path="/expenses" element={<ExpensesList />} />
+        <Route path="/expenses/new" element={<ExpenseForm />} />
+        <Route path="/expenses/:id" element={<ExpenseDetail />} />
+        <Route path="/expenses/:id/edit" element={<ExpenseForm />} />
         <Route path="/statements/:memberId" element={<MemberStatement />} />
 
         <Route path="/welfare" element={<WelfareList />} />
@@ -95,6 +102,6 @@ export default function App() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
-    </ErrorBoundary>
+    // </ErrorBoundary>
   );
 }

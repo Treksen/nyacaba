@@ -48,10 +48,22 @@ export function AuthProvider({ children }) {
     });
 
     const { data: subscription } = supabase.auth.onAuthStateChange(
-      (_event, s) => {
+      (event, s) => {
+        // Always keep the session in sync so the latest JWT is used,
+        // but DO NOT reload the profile on every event. Supabase fires
+        // TOKEN_REFRESHED when the tab regains focus, which used to
+        // cause every page to flash its loading spinner.
         setSession(s);
-        if (s?.user?.id) loadProfile(s.user.id);
-        else setProfile(null);
+
+        if (event === 'SIGNED_IN') {
+          if (s?.user?.id) loadProfile(s.user.id);
+        } else if (event === 'SIGNED_OUT') {
+          setProfile(null);
+          setMyMemberId(null);
+        }
+        // Ignore TOKEN_REFRESHED, USER_UPDATED, INITIAL_SESSION — the
+        // profile is already loaded by getSession() above, and the
+        // refreshed token is already in `session` state.
       }
     );
 

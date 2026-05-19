@@ -12,7 +12,7 @@ registerSW({
 });
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
+  // <React.StrictMode>
     <BrowserRouter>
       <ToastProvider>
         <AuthProvider>
@@ -20,5 +20,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         </AuthProvider>
       </ToastProvider>
     </BrowserRouter>
-  </React.StrictMode>
+  // </React.StrictMode>
 );

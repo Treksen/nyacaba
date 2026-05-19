@@ -216,13 +216,13 @@ export default function Dashboard() {
     };
   }, [tab]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <LoadingSpinner label="Gathering data…" />
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="flex items-center justify-center min-h-[60vh]">
+  //       <LoadingSpinner label="Gathering data…" />
+  //     </div>
+  //   );
+  // }
 
   return (
     <>

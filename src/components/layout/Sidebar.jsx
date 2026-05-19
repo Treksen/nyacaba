@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Wallet, HandCoins, HeartHandshake,
   Package, CalendarDays, Hammer, Megaphone, Bell,
-  BarChart3, UserCog, ShieldCheck, Settings, History, Sparkles, X, AlertTriangle
+  BarChart3, UserCog, ShieldCheck, Settings, History, Sparkles, X, AlertTriangle, Receipt
 } from 'lucide-react';
 import Logo from '../ui/Logo';
 import { CHURCH_NAME } from '../../lib/constants';
@@ -14,6 +14,7 @@ const NAV = [
   { to: '/contributions', label: 'Contributions', icon: Wallet },
   { to: '/pledges',       label: 'Pledges',       icon: HandCoins },
   { to: '/welfare',       label: 'Welfare',       icon: HeartHandshake },
+  { to: '/expenses',      label: 'Expenses',      icon: Receipt,        staffOnly: true },
   { to: '/inventory',     label: 'Inventory',     icon: Package },
   { to: '/meetings',      label: 'Meetings',      icon: CalendarDays },
   { to: '/projects',      label: 'Projects',      icon: Hammer },
@@ -23,7 +24,7 @@ const NAV = [
 ];
 
 export default function Sidebar({ open, onClose }) {
-  const { isAdmin, isAdminOrChair, hasLinkedMember } = useAuth();
+  const { isAdmin, isAdminOrChair, isStaff, hasLinkedMember } = useAuth();
   return (
     <>
       {/* mobile overlay */}
@@ -69,7 +70,7 @@ export default function Sidebar({ open, onClose }) {
             Main
           </p>
           <ul className="space-y-0.5">
-            {NAV.map((item) => (
+            {NAV.filter((item) => !item.staffOnly || isStaff).map((item) => (
               <li key={item.to}>
                 <NavLink
                   to={item.to}

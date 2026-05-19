@@ -118,3 +118,18 @@ export const VERIFICATION_STATUS = {
   confirmed: { label: 'Confirmed',            className: 'badge-emerald', icon: '✓'  },
   rejected:  { label: 'Rejected',             className: 'badge-rose',    icon: '✗'  },
 };
+
+export const EXPENSE_STATUS = {
+  pending_approval: { label: 'Pending approval', className: 'badge-amber',   icon: '⏳' },
+  approved:         { label: 'Approved',         className: 'badge-emerald', icon: '✓'  },
+  rejected:         { label: 'Rejected',         className: 'badge-rose',    icon: '✗'  },
+};
+
+// Categories come from DB, but these defaults match the seed in migration 023
+export const EXPENSE_PAYMENT_METHODS = [
+  { value: 'cash',   label: 'Cash' },
+  { value: 'mpesa',  label: 'M-Pesa' },
+  { value: 'bank',   label: 'Bank Transfer' },
+  { value: 'cheque', label: 'Cheque' },
+  { value: 'other',  label: 'Other' },
+];
