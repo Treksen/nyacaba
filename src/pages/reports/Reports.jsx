@@ -3,10 +3,11 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
   PieChart, Pie, Cell, Legend
 } from 'recharts';
-import { Download, BarChart3 } from 'lucide-react';
+import { BarChart3, FileSpreadsheet, FileText } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { formatMoney } from '../../lib/format';
 import { CONTRIBUTION_TYPES, MONTHS, WELFARE_CATEGORIES } from '../../lib/constants';
+import { exportReportExcel, exportReportPDF } from '../../lib/reportExport';
 import PageHeader from '../../components/ui/PageHeader';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
@@ -18,6 +19,7 @@ export default function Reports() {
   const [byMonth, setByMonth] = useState([]);
   const [byType, setByType] = useState([]);
   const [welfareByCat, setWelfareByCat] = useState([]);
+  const [expensesByCat, setExpensesByCat] = useState([]);
   const [topContributors, setTopContributors] = useState([]);
   const [summary, setSummary] = useState({});
 
@@ -28,10 +30,11 @@ export default function Reports() {
       const startDate = `${year}-01-01`;
       const endDate = `${year}-12-31`;
 
-      const [{ data: contribs }, { data: welfare }, { data: expenses }] = await Promise.all([
+      const [{ data: contribs }, { data: welfare }, { data: expenses }, { data: genExpenses }] = await Promise.all([
         supabase.from('contributions').select('amount, contribution_type, contribution_date, member_id, members(full_name)').eq('verification_status', 'confirmed').gte('contribution_date', startDate).lte('contribution_date', endDate),
         supabase.from('welfare_requests').select('category, amount_disbursed').gt('amount_disbursed', 0).gte('submitted_at', startDate).lte('submitted_at', endDate),
         supabase.from('project_expenses').select('amount').gte('expense_date', startDate).lte('expense_date', endDate),
+        supabase.from('expenses').select('amount, expense_categories(name)').eq('status', 'approved').gte('expense_date', startDate).lte('expense_date', endDate),
       ]);
 
       if (!active) return;
@@ -73,17 +76,33 @@ export default function Reports() {
 
       const totalContrib = (contribs || []).reduce((s, c) => s + Number(c.amount || 0), 0);
       const totalWelfare = (welfare || []).reduce((s, w) => s + Number(w.amount_disbursed || 0), 0);
-      const totalExpenses = (expenses || []).reduce((s, e) => s + Number(e.amount || 0), 0);
+      const totalProjectExpenses = (expenses || []).reduce((s, e) => s + Number(e.amount || 0), 0);
+
+      // General expenses by category (new expenses module)
+      const genMap = {};
+      (genExpenses || []).forEach((e) => {
+        const name = e.expense_categories?.name || 'Uncategorized';
+        genMap[name] = (genMap[name] || 0) + Number(e.amount || 0);
+      });
+      const genData = Object.entries(genMap)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value);
+      const totalGeneralExpenses = (genExpenses || []).reduce((s, e) => s + Number(e.amount || 0), 0);
+
+      const totalOut = totalWelfare + totalProjectExpenses + totalGeneralExpenses;
 
       setByMonth(months);
       setByType(typeData);
       setWelfareByCat(welfareData);
+      setExpensesByCat(genData);
       setTopContributors(top);
       setSummary({
         totalContrib,
         totalWelfare,
-        totalExpenses,
-        netPosition: totalContrib - totalWelfare - totalExpenses,
+        totalProjectExpenses,
+        totalGeneralExpenses,
+        totalOut,
+        netPosition: totalContrib - totalOut,
         contribCount: (contribs || []).length,
       });
       setLoading(false);
@@ -92,37 +111,16 @@ export default function Reports() {
     return () => { active = false; };
   }, [year]);
 
-  function exportCSV() {
-    const rows = [
-      ['Nyacaba Welfare — Annual Report'],
-      [`Year: ${year}`],
-      [''],
-      ['Summary'],
-      ['Total contributions', summary.totalContrib],
-      ['Total welfare disbursed', summary.totalWelfare],
-      ['Total project expenses', summary.totalExpenses],
-      ['Net position', summary.netPosition],
-      [''],
-      ['Monthly Collections'],
-      ['Month', 'Amount'],
-      ...byMonth.map((m) => [m.name, m.total]),
-      [''],
-      ['By Type'],
-      ['Type', 'Amount'],
-      ...byType.map((t) => [t.name, t.value]),
-      [''],
-      ['Top Contributors'],
-      ['Member', 'Total'],
-      ...topContributors.map((t) => [t.name, t.total]),
-    ];
-    const csv = rows.map((r) => r.map((c) => `"${c}"`).join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `nyacaba-report-${year}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  function buildReport() {
+    return { year, summary, byMonth, byType, welfareByCat, expensesByCat, topContributors };
+  }
+
+  function handleExcel() {
+    exportReportExcel(buildReport());
+  }
+
+  function handlePDF() {
+    exportReportPDF(buildReport());
   }
 
   const years = [];
@@ -136,12 +134,15 @@ export default function Reports() {
         title="Reports"
         description={`Annual summary for the year ${year}.`}
         action={
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <select className="input !w-auto" value={year} onChange={(e) => setYear(parseInt(e.target.value))}>
               {years.map((y) => <option key={y} value={y}>{y}</option>)}
             </select>
-            <button onClick={exportCSV} className="btn-primary">
-              <Download size={16}/> Export CSV
+            <button onClick={handleExcel} disabled={loading} className="btn-secondary">
+              <FileSpreadsheet size={16}/> Excel
+            </button>
+            <button onClick={handlePDF} disabled={loading} className="btn-primary">
+              <FileText size={16}/> PDF
             </button>
           </div>
         }
@@ -158,18 +159,35 @@ export default function Reports() {
               <p className="text-xs text-ink-600 mt-0.5">{summary.contribCount} entries</p>
             </div>
             <div className="card-padded">
-              <p className="kicker">Welfare Disbursed</p>
-              <p className="font-display text-2xl font-semibold mt-1">{formatMoney(summary.totalWelfare)}</p>
+              <p className="kicker">Total Out</p>
+              <p className="font-display text-2xl font-semibold mt-1 text-rose-700">{formatMoney(summary.totalOut)}</p>
+              <p className="text-xs text-ink-600 mt-0.5">welfare + expenses + projects</p>
             </div>
             <div className="card-padded">
-              <p className="kicker">Project Expenses</p>
-              <p className="font-display text-2xl font-semibold mt-1">{formatMoney(summary.totalExpenses)}</p>
+              <p className="kicker">Welfare Disbursed</p>
+              <p className="font-display text-2xl font-semibold mt-1">{formatMoney(summary.totalWelfare)}</p>
             </div>
             <div className="card-padded">
               <p className="kicker">Net Position</p>
               <p className={`font-display text-2xl font-semibold mt-1 ${summary.netPosition < 0 ? 'text-rose-700' : 'text-primary-900'}`}>
                 {formatMoney(summary.netPosition)}
               </p>
+            </div>
+          </div>
+
+          {/* Outflow detail strip */}
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+            <div className="card-padded">
+              <p className="kicker">General Expenses</p>
+              <p className="font-display text-xl font-semibold mt-1 text-ink-900">{formatMoney(summary.totalGeneralExpenses)}</p>
+            </div>
+            <div className="card-padded">
+              <p className="kicker">Project Expenses</p>
+              <p className="font-display text-xl font-semibold mt-1 text-ink-900">{formatMoney(summary.totalProjectExpenses)}</p>
+            </div>
+            <div className="card-padded">
+              <p className="kicker">Welfare Disbursed</p>
+              <p className="font-display text-xl font-semibold mt-1 text-ink-900">{formatMoney(summary.totalWelfare)}</p>
             </div>
           </div>
 
@@ -221,6 +239,24 @@ export default function Reports() {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* General expenses by category */}
+          <div className="card-padded mb-6">
+            <h3 className="font-display text-lg font-semibold mb-4">General expenses by category</h3>
+            {expensesByCat.length === 0 ? <p className="text-sm text-ink-600">No general expenses recorded this year.</p> : (
+              <div className="h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={expensesByCat} layout="vertical" margin={{ left: 20 }}>
+                    <CartesianGrid strokeDasharray="2 6" stroke="#E4E8E5" horizontal={false}/>
+                    <XAxis type="number" tick={{ fontSize: 12, fill: '#5A6660' }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}/>
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: '#5A6660' }} axisLine={false} tickLine={false} width={110}/>
+                    <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #E4E8E5', background: '#FAF7F2' }} formatter={(v) => formatMoney(v)}/>
+                    <Bar dataKey="value" fill="#D4A24E" radius={[0, 8, 8, 0]}/>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </div>
 
           <div className="card-padded">

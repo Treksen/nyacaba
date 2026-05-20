@@ -96,6 +96,19 @@ export function AuthProvider({ children }) {
     if (session?.user?.id) await loadProfile(session.user.id);
   }, [session, loadProfile]);
 
+  // Send a password-reset email. The link returns the user to /reset-password.
+  const sendPasswordReset = useCallback(async (email) => {
+    const redirectTo = `${window.location.origin}/reset-password`;
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    return { data, error };
+  }, []);
+
+  // Set a new password (used on the reset-password page after following the link).
+  const updatePassword = useCallback(async (newPassword) => {
+    const { data, error } = await supabase.auth.updateUser({ password: newPassword });
+    return { data, error };
+  }, []);
+
   const value = useMemo(
     () => {
       const role = profile?.role;
@@ -134,9 +147,11 @@ export function AuthProvider({ children }) {
         signUp,
         signOut,
         refreshProfile,
+        sendPasswordReset,
+        updatePassword,
       };
     },
-    [session, profile, myMemberId, loading, profileLoading, signIn, signUp, signOut, refreshProfile]
+    [session, profile, myMemberId, loading, profileLoading, signIn, signUp, signOut, refreshProfile, sendPasswordReset, updatePassword]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

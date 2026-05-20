@@ -39,7 +39,9 @@ import ContributionReceipt from './pages/contributions/ContributionReceipt';
 import ExpensesList from './pages/expenses/ExpensesList';
 import ExpenseForm from './pages/expenses/ExpenseForm';
 import ExpenseDetail from './pages/expenses/ExpenseDetail';
-// import ErrorBoundary from './components/ErrorBoundary';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
+import ErrorBoundary from './components/ErrorBoundary';
 
 export default function App() {
   const { loading, session } = useAuth();
@@ -53,10 +55,12 @@ export default function App() {
   }
 
   return (
-    // <ErrorBoundary>
+    <ErrorBoundary>
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/pending" element={<PendingApproval />} />
 
       <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
@@ -102,6 +106,6 @@ export default function App() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
-    // </ErrorBoundary>
+    </ErrorBoundary>
   );
 }
