@@ -34,10 +34,11 @@ export default function ExpensesList() {
     async function load() {
       setLoading(true);
       let query = supabase
-        .from('expenses')
-        .select('id, expense_no, title, amount, expense_date, payment_method, status, category_id, expense_categories(name), recorder:profiles!expenses_recorded_by_fkey(full_name)')
-        .order('expense_date', { ascending: false })
-        .order('created_at', { ascending: false })
+        .from("expenses")
+        .select(
+          "id, expense_no, title, amount, expense_date, payment_method, status, category_id, expense_categories(name), recorder:safe_profiles!expenses_recorded_by_fkey(full_name)",)
+        .order("expense_date", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(500);
       if (statusFilter)   query = query.eq('status', statusFilter);
       if (categoryFilter) query = query.eq('category_id', categoryFilter);
@@ -65,15 +66,15 @@ export default function ExpensesList() {
     [filtered]
   );
 
-  if (!isStaff) {
-    return (
-      <EmptyState
-        icon={AlertCircle}
-        title="Leadership only"
-        description="Only leadership can view the expense ledger."
-      />
-    );
-  }
+  // if (!isStaff) {
+  //   return (
+  //     <EmptyState
+  //       icon={AlertCircle}
+  //       title="Leadership only"
+  //       description="Only leadership can view the expense ledger."
+  //     />
+  //   );
+  // }
 
   return (
     <>

@@ -28,17 +28,19 @@ export default function ExpenseDetail() {
   async function load() {
     setLoading(true);
     const { data, error } = await supabase
-      .from('expenses')
-      .select(`
+      .from("expenses")
+      .select(
+        `
         *,
         expense_categories(name),
         inventory_items(name, sku),
         projects(name),
-        recorder:profiles!expenses_recorded_by_fkey(full_name, email),
-        approver:profiles!expenses_approved_by_fkey(full_name),
-        rejecter:profiles!expenses_rejected_by_fkey(full_name)
-      `)
-      .eq('id', id)
+        recorder:safe_profiles!expenses_recorded_by_fkey(full_name),
+        approver:safe_profiles!expenses_approved_by_fkey(full_name),
+        rejecter:safe_profiles!expenses_rejected_by_fkey(full_name)
+      `,
+      )
+      .eq("id", id)
       .maybeSingle();
     if (error) notifyError(error, { action: 'load_expense_detail', expense_id: id });
     else setExp(data);

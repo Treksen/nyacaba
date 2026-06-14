@@ -29,9 +29,11 @@ export default function MemberDetail() {
     let active = true;
     async function load() {
       const { data: m } = await supabase
-        .from('members')
-        .select('*, welfare_groups(name), profile:profiles!members_profile_id_fkey(avatar_url)')
-        .eq('id', id)
+        .from("members")
+        .select(
+          "*, welfare_groups(name), safe_profiles:profiles!members_profile_id_fkey(avatar_url)",
+        )
+        .eq("id", id)
         .maybeSingle();
       const { data: c } = await supabase
         .from('contributions')

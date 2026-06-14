@@ -14,7 +14,7 @@ const NAV = [
   { to: '/contributions', label: 'Contributions', icon: Wallet },
   { to: '/pledges',       label: 'Pledges',       icon: HandCoins },
   { to: '/welfare',       label: 'Welfare',       icon: HeartHandshake },
-  { to: '/expenses',      label: 'Expenses',      icon: Receipt,        staffOnly: true },
+  { to: '/expenses',      label: 'Expenses',      icon: Receipt,        staffOnly: false },
   { to: '/inventory',     label: 'Inventory',     icon: Package },
   { to: '/meetings',      label: 'Meetings',      icon: CalendarDays },
   { to: '/projects',      label: 'Projects',      icon: Hammer },
