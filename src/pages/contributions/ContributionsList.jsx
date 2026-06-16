@@ -4,7 +4,6 @@ import { Plus, Search, Wallet, Edit2, Trash2, Printer, CheckCircle2, XCircle, Cl
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { useNotifyError } from '../../lib/useNotifyError';
 import { formatMoney, formatDate } from '../../lib/format';
 import { CONTRIBUTION_TYPES, PAYMENT_METHODS, MONTHS, VERIFICATION_STATUS } from '../../lib/constants';
 import PageHeader from '../../components/ui/PageHeader';
@@ -12,10 +11,9 @@ import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 
 export default function ContributionsList() {
-  const { canManageFinances: isAdmin, canVerifyContributions, profile } = useAuth();
+  const { canManageFinances: isAdmin, canVerifyContributions, isTreasurer, profile } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const toast = useToast();
-  const notifyError = useNotifyError();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState('');
@@ -24,7 +22,9 @@ export default function ContributionsList() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const canEdit = isAdmin || isTreasurer;
   const [editing, setEditing] = useState(null);
+  const [projects, setProjects] = useState([]);
   const [form, setForm] = useState({});
   const [saving, setSaving] = useState(false);
   const [rejecting, setRejecting] = useState(null);
@@ -34,7 +34,7 @@ export default function ContributionsList() {
     setLoading(true);
     let query = supabase
       .from('contributions')
-      .select('id, amount, contribution_type, payment_method, contribution_date, reference_no, period_month, period_year, notes, member_id, recorded_by, verification_status, verified_by, verified_at, rejection_reason, members(full_name, membership_no), projects(name)')
+      .select('id, amount, contribution_type, payment_method, contribution_date, reference_no, period_month, period_year, notes, project_id, member_id, recorded_by, verification_status, verified_by, verified_at, rejection_reason, members(full_name, membership_no), projects(name)')
       .order('contribution_date', { ascending: false })
       .limit(500);
     if (type) query = query.eq('contribution_type', type);
@@ -48,6 +48,11 @@ export default function ContributionsList() {
   }
 
   useEffect(() => { load(); }, [type, statusTab, dateFrom, dateTo]);
+
+  useEffect(() => {
+    supabase.from('projects').select('id, name').neq('status', 'cancelled').order('name')
+      .then(({ data }) => setProjects(data || []));
+  }, []);
 
   function toggleSelect(id) {
     setSelectedIds((s) => {
@@ -74,7 +79,7 @@ export default function ContributionsList() {
       .from('contributions')
       .update({ verification_status: 'confirmed', rejection_reason: null })
       .in('id', Array.from(selectedIds));
-    if (error) notifyError(error, { action: 'ContributionsList' });
+    if (error) toast.error(error.message);
     else {
       toast.success(`${selectedIds.size} verified`);
       setSelectedIds(new Set());
@@ -93,6 +98,7 @@ export default function ContributionsList() {
       period_month: c.period_month || '',
       period_year: c.period_year || '',
       notes: c.notes || '',
+      project_id: c.project_id || '',
     });
   }
 
@@ -108,16 +114,17 @@ export default function ContributionsList() {
       period_month: form.period_month ? Number(form.period_month) : null,
       period_year: form.period_year ? Number(form.period_year) : null,
       notes: form.notes || null,
+      project_id: form.contribution_type === 'project' ? (form.project_id || null) : null,
     }).eq('id', editing.id);
     setSaving(false);
-    if (error) notifyError(error, { action: 'ContributionsList' });
+    if (error) toast.error(error.message);
     else { toast.success('Updated'); setEditing(null); load(); }
   }
 
   async function handleDelete(c) {
     if (!confirm(`Delete the ${formatMoney(c.amount)} contribution from ${c.members?.full_name || 'this member'}? This cannot be undone.`)) return;
     const { error } = await supabase.from('contributions').delete().eq('id', c.id);
-    if (error) notifyError(error, { action: 'ContributionsList' }); else { toast.success('Deleted'); load(); }
+    if (error) toast.error(error.message); else { toast.success('Deleted'); load(); }
   }
 
   async function handleVerify(c) {
@@ -125,7 +132,7 @@ export default function ContributionsList() {
       verification_status: 'confirmed',
       rejection_reason: null,
     }).eq('id', c.id);
-    if (error) notifyError(error, { action: 'ContributionsList' });
+    if (error) toast.error(error.message);
     else { toast.success('Verified'); load(); }
   }
 
@@ -136,7 +143,7 @@ export default function ContributionsList() {
       verification_status: 'rejected',
       rejection_reason: rejectReason.trim(),
     }).eq('id', rejecting.id);
-    if (error) notifyError(error, { action: 'ContributionsList' });
+    if (error) toast.error(error.message);
     else {
       toast.success('Rejected');
       setRejecting(null);
@@ -260,13 +267,13 @@ export default function ContributionsList() {
     });
   }
 
-  if (isAdmin) {
+  if (canEdit) {
     columns.push({
       key: 'actions', header: '', className: 'text-right',
       render: (c) => (
         <div className="flex justify-end gap-1">
           <button onClick={(e) => { e.stopPropagation(); openEdit(c); }} className="p-1.5 rounded-lg text-ink-700 hover:bg-cream-100" aria-label="Edit"><Edit2 size={14}/></button>
-          <button onClick={(e) => { e.stopPropagation(); handleDelete(c); }} className="p-1.5 rounded-lg text-rose-700 hover:bg-rose-50" aria-label="Delete"><Trash2 size={14}/></button>
+          {isAdmin && <button onClick={(e) => { e.stopPropagation(); handleDelete(c); }} className="p-1.5 rounded-lg text-rose-700 hover:bg-rose-50" aria-label="Delete"><Trash2 size={14}/></button>}
         </div>
       ),
     });
@@ -382,7 +389,7 @@ export default function ContributionsList() {
               <CheckCircle2 size={14}/> Verify {selectedIds.size > 0 ? `selected (${selectedIds.size})` : 'selected'}
             </button>
             <p className="text-xs text-ink-600 ml-auto">
-              Tip: filter by date or type first, then "Select all pending" to bulk-verify a batch.
+              Tip: filter by date or type first, then "Select all pending" to bulk-verify a batch (e.g. monthly contributions for last Sunday).
             </p>
           </div>
         </div>
@@ -453,6 +460,27 @@ export default function ContributionsList() {
               <label className="label">Reference / M-Pesa code</label>
               <input className="input" value={form.reference_no} onChange={(e) => setForm({ ...form, reference_no: e.target.value })}/>
             </div>
+            {form.contribution_type === 'project' && (
+              <div>
+                <label className="label">Project *</label>
+                {projects.length === 0 ? (
+                  <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2">
+                    No active projects found.
+                  </p>
+                ) : (
+                  <select
+                    className="input"
+                    value={form.project_id}
+                    onChange={(e) => setForm({ ...form, project_id: e.target.value })}
+                  >
+                    <option value="">— Select project —</option>
+                    {projects.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            )}
             <div>
               <label className="label">Notes</label>
               <textarea rows={2} className="input" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}/>

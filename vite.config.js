@@ -9,7 +9,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'Nyacaba Welfare Management System',
+        name: 'Nyacaba WMS',
         short_name: 'Nyacaba WMS',
         description: 'Church welfare, contributions, and project management',
         theme_color: '#0F4A3C',
