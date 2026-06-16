@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Nyacaba Welfare Management System - a comprehensive church welfare, contributions, and project management platform",
+  "description": "Nyacaba Welfare Management System",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
