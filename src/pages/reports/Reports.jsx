@@ -4,6 +4,7 @@ import {
   PieChart, Pie, Cell, Legend, LineChart, Line,
 } from 'recharts';
 import { BarChart3, FileSpreadsheet, FileText, TrendingUp, TrendingDown, Users, Wallet, HeartHandshake, Package } from 'lucide-react';
+import { exportReportPDF } from '../../lib/reportExport';
 import { supabase } from '../../lib/supabase';
 import { formatMoney, formatDate } from '../../lib/format';
 import { CONTRIBUTION_TYPES, MONTHS, WELFARE_CATEGORIES } from '../../lib/constants';
@@ -213,6 +214,18 @@ export default function Reports() {
   }, [year]);
 
   // ---- EXPORT helpers (inline lightweight CSV) ----
+  function buildReport() {
+    return {
+      year, summary, byMonth, byType, welfareByCat,
+      expensesByCat, projectsSummary, topContributors,
+      memberGrowth, welfareStats, meetingStats, pendingContribs,
+    };
+  }
+
+  function handlePDF() {
+    exportReportPDF(buildReport());
+  }
+
   function exportCSV() {
     const rows = [
       [`${(typeof CHURCH_NAME !== 'undefined' ? CHURCH_NAME : 'Nyacaba')} Annual Report — ${year}`],
@@ -258,6 +271,9 @@ export default function Reports() {
             </select>
             <button onClick={exportCSV} disabled={loading} className="btn-secondary">
               <FileSpreadsheet size={16}/> CSV
+            </button>
+            <button onClick={handlePDF} disabled={loading} className="btn-primary">
+              <FileText size={16}/> PDF
             </button>
           </div>
         }

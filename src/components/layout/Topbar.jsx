@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, Bell, LogOut, ChevronDown } from 'lucide-react';
+import { Menu, Bell, LogOut, ChevronDown, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { initials } from '../../lib/format';
@@ -51,6 +51,15 @@ export default function Topbar({ onOpenSidebar }) {
         </button>
 
         <div className="flex-1" />
+
+        <button
+          onClick={() => window.location.reload()}
+          className="p-2 rounded-lg text-ink-700 hover:bg-cream-200 transition"
+          aria-label="Refresh page"
+          title="Refresh"
+        >
+          <RefreshCw size={18} />
+        </button>
 
         <Link
           to="/notifications"

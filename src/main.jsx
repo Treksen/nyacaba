@@ -4,21 +4,19 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { ToastProvider } from './context/ToastContext.jsx';
+import { RefreshProvider } from './context/RefreshContext.jsx';
 import './index.css';
-import { registerSW } from "virtual:pwa-register";
-
-registerSW({
-  immediate: true,
-});
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  // <React.StrictMode>
+  <React.StrictMode>
     <BrowserRouter>
       <ToastProvider>
         <AuthProvider>
-          <App />
+          <RefreshProvider>
+            <App />
+          </RefreshProvider>
         </AuthProvider>
       </ToastProvider>
     </BrowserRouter>
-  // </React.StrictMode>
+  </React.StrictMode>
 );
