@@ -21,9 +21,12 @@ export default function ForgotPassword() {
     setSubmitting(false);
     // For privacy we show the same confirmation whether or not the email exists,
     // so we don't reveal which emails are registered.
-    if (error && error.message?.toLowerCase().includes('rate')) {
-      return toast.error('Too many attempts. Please wait a moment and try again.');
+    if (error) {
+      console.error("Password reset error:", error);
+      toast.error(error.message);
+      return;
     }
+
     setSent(true);
   }
 
