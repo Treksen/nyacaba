@@ -42,6 +42,8 @@ import ExpenseDetail from './pages/expenses/ExpenseDetail';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import ErrorBoundary from './components/ErrorBoundary';
+import MonthlyDetail from "./pages/projects/MonthlyDetail";
+import MonthlyContributions from "./pages/projects/MonthlyContributions";
 
 export default function App() {
   const { loading, session } = useAuth();
@@ -56,56 +58,66 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/pending" element={<PendingApproval />} />
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/pending" element={<PendingApproval />} />
 
-      <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/members" element={<MembersList />} />
-        <Route path="/members/new" element={<MemberForm />} />
-        <Route path="/members/:id" element={<MemberDetail />} />
-        <Route path="/members/:id/edit" element={<MemberForm />} />
+        <Route
+          element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/members" element={<MembersList />} />
+          <Route path="/members/new" element={<MemberForm />} />
+          <Route path="/members/:id" element={<MemberDetail />} />
+          <Route path="/members/:id/edit" element={<MemberForm />} />
 
-        <Route path="/contributions" element={<ContributionsList />} />
-        <Route path="/contributions/new" element={<ContributionForm />} />
-        <Route path="/pledges" element={<PledgesList />} />
-        <Route path="/expenses" element={<ExpensesList />} />
-        <Route path="/expenses/new" element={<ExpenseForm />} />
-        <Route path="/expenses/:id" element={<ExpenseDetail />} />
-        <Route path="/expenses/:id/edit" element={<ExpenseForm />} />
-        <Route path="/statements/:memberId" element={<MemberStatement />} />
+          <Route path="/contributions" element={<ContributionsList />} />
+          <Route path="/contributions/new" element={<ContributionForm />} />
+          <Route path="/pledges" element={<PledgesList />} />
+          <Route path="/expenses" element={<ExpensesList />} />
+          <Route path="/expenses/new" element={<ExpenseForm />} />
+          <Route path="/expenses/:id" element={<ExpenseDetail />} />
+          <Route path="/expenses/:id/edit" element={<ExpenseForm />} />
+          <Route path="/statements/:memberId" element={<MemberStatement />} />
 
-        <Route path="/welfare" element={<WelfareList />} />
-        <Route path="/welfare/new" element={<WelfareRequestForm />} />
-        <Route path="/welfare/:id" element={<WelfareDetail />} />
+          <Route path="/welfare" element={<WelfareList />} />
+          <Route path="/welfare/new" element={<WelfareRequestForm />} />
+          <Route path="/welfare/:id" element={<WelfareDetail />} />
 
-        <Route path="/inventory" element={<InventoryList />} />
-        <Route path="/inventory/:id" element={<InventoryItemPage />} />
+          <Route path="/inventory" element={<InventoryList />} />
+          <Route path="/inventory/:id" element={<InventoryItemPage />} />
 
-        <Route path="/meetings" element={<MeetingsList />} />
-        <Route path="/meetings/:id" element={<MeetingDetail />} />
+          <Route path="/meetings" element={<MeetingsList />} />
+          <Route path="/meetings/:id" element={<MeetingDetail />} />
 
-        <Route path="/projects" element={<ProjectsList />} />
-        <Route path="/projects/:id" element={<ProjectDetail />} />
+          <Route path="/projects" element={<ProjectsList />} />
+          <Route path="/projects/monthly-contributions" element={<MonthlyContributions />}/>
+          <Route path="/projects/monthly/:id" element={<MonthlyDetail />} />
+          <Route path="/projects/:id" element={<ProjectDetail />} />
 
-        <Route path="/announcements" element={<AnnouncementsList />} />
-        <Route path="/notifications" element={<NotificationsList />} />
-        <Route path="/reports" element={<Reports />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/admin" element={<AdminPanel />} />
-        <Route path="/admin/lookups" element={<LookupsPanel />} />
-        <Route path="/admin/audit" element={<AuditLog />} />
-        <Route path="/admin/errors" element={<ErrorLogs />} />
-        <Route path="/my-giving" element={<MyGiving />} />
-        <Route path="/receipt/:id" element={<ContributionReceipt />} />
-      </Route>
+          
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+          <Route path="/announcements" element={<AnnouncementsList />} />
+          <Route path="/notifications" element={<NotificationsList />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/admin/lookups" element={<LookupsPanel />} />
+          <Route path="/admin/audit" element={<AuditLog />} />
+          <Route path="/admin/errors" element={<ErrorLogs />} />
+          <Route path="/my-giving" element={<MyGiving />} />
+          <Route path="/receipt/:id" element={<ContributionReceipt />} />
+        </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </ErrorBoundary>
   );
 }

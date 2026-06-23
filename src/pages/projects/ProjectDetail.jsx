@@ -37,11 +37,11 @@ export default function ProjectDetail() {
  
       async function load() {
     setLoading(true);
-    const [{ data: p }, { data: m }, { data: e }, { data: c }] = await Promise.all([
+    const [{ data: p }, { data: m }, { data: e }, { data: totalContrib }] = await Promise.all([
       supabase.from('projects').select('*').eq('id', id).maybeSingle(),
       supabase.from('project_milestones').select('*').eq('project_id', id).order('due_date', { nullsFirst: false }),
       supabase.from('project_expenses').select('*, profiles(full_name)').eq('project_id', id).order('expense_date', { ascending: false }),
-      supabase.from('contributions').select('amount').eq('project_id', id).eq('verification_status', 'confirmed'),
+      supabase.rpc('project_contribution_total', { p_project_id: id }).then(({ data }) => ({ data })),
     ]);
     setProject(p);
     setEditForm({
@@ -53,7 +53,7 @@ export default function ProjectDetail() {
     });
     setMilestones(m || []);
     setExpenses(e || []);
-    setContributed((c || []).reduce((s, r) => s + Number(r.amount || 0), 0));
+    setContributed(Number(totalContrib || 0));
     setLoading(false);
   }
 

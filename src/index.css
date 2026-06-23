@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+select {
+  background-color: white;
+  color-scheme: light;
+} 
+
+select option {
+  background-color: white;
+  color: #1c1917;
+}
+
+
 @layer base {
   html {
     -webkit-font-smoothing: antialiased;
@@ -40,6 +51,16 @@
 }
 
 @layer components {
+  .input {
+      @apply w-full px-3.5 py-2.5 rounded-lg bg-white border border-cream-300 text-ink-900 placeholder-ink-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-colors duration-200 disabled:bg-cream-100 disabled:cursor-not-allowed;
+      color-scheme: light;
+    }
+  
+    .input option {
+      background-color: white;
+      color: #1c1917;
+    }
+
   .btn {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
            font-medium text-sm transition-all duration-200

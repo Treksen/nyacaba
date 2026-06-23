@@ -29,29 +29,54 @@ export default function ContributionsList() {
   const [saving, setSaving] = useState(false);
   const [rejecting, setRejecting] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [projectFilter, setProjectFilter] = useState("");
+  const [periodFilter, setPeriodFilter]   = useState("");
 
   async function load() {
     setLoading(true);
     let query = supabase
-      .from('contributions')
-      .select('id, amount, contribution_type, payment_method, contribution_date, reference_no, period_month, period_year, notes, project_id, member_id, recorded_by, verification_status, verified_by, verified_at, rejection_reason, members(full_name, membership_no), projects(name)')
-      .order('contribution_date', { ascending: false })
+      .from("contributions")
+      .select(
+        "id, amount, contribution_type, payment_method, contribution_date, reference_no, period_month, period_year, period_id, notes, project_id, member_id, recorded_by, verification_status, verified_by, verified_at, rejection_reason, members(full_name, membership_no), projects(name), periods:monthly_periods(year, month)",
+      )
+      .order("contribution_date", { ascending: false })
       .limit(500);
     if (type) query = query.eq('contribution_type', type);
     if (statusTab !== 'all') query = query.eq('verification_status', statusTab);
     if (dateFrom) query = query.gte('contribution_date', dateFrom);
     if (dateTo)   query = query.lte('contribution_date', dateTo);
+    if (projectFilter && type === 'project') query = query.eq('project_id', projectFilter);
+    if (periodFilter  && type === 'monthly') query = query.eq('period_id',  periodFilter);
     const { data } = await query;
     setRows(data || []);
     setSelectedIds(new Set()); // clear selection on reload
     setLoading(false);
   }
 
-  useEffect(() => { load(); }, [type, statusTab, dateFrom, dateTo]);
+  useEffect(() => {
+    // Reset sub-filters when type changes so stale filters don't bleed across
+    setProjectFilter('');
+    setPeriodFilter('');
+  }, [type]);
+
+  useEffect(() => {
+    load();
+  }, [type, statusTab, dateFrom, dateTo, projectFilter, periodFilter]);
 
   useEffect(() => {
     supabase.from('projects').select('id, name').neq('status', 'cancelled').order('name')
       .then(({ data }) => setProjects(data || []));
+  }, []);
+
+  const [periods, setPeriods] = useState([]);
+
+  useEffect(() => {
+    supabase
+      .from("monthly_periods")
+      .select("id, year, month")
+      .order("year", { ascending: false })
+      .order("month", { ascending: false })
+      .then(({ data }) => setPeriods(data || []));
   }, []);
 
   function toggleSelect(id) {
@@ -94,11 +119,12 @@ export default function ContributionsList() {
       contribution_type: c.contribution_type,
       payment_method: c.payment_method,
       contribution_date: c.contribution_date,
-      reference_no: c.reference_no || '',
-      period_month: c.period_month || '',
-      period_year: c.period_year || '',
-      notes: c.notes || '',
-      project_id: c.project_id || '',
+      reference_no: c.reference_no || "",
+      period_month: c.period_month || "",
+      period_year: c.period_year || "",
+      notes: c.notes || "",
+      project_id: c.project_id || "",
+      period_id: c.period_id || "", // ← add this
     });
   }
 
@@ -115,6 +141,7 @@ export default function ContributionsList() {
       period_year: form.period_year ? Number(form.period_year) : null,
       notes: form.notes || null,
       project_id: form.contribution_type === 'project' ? (form.project_id || null) : null,
+      period_id:  form.contribution_type === 'monthly' ? (form.period_id  || null) : null,
     }).eq('id', editing.id);
     setSaving(false);
     if (error) toast.error(error.message);
@@ -190,6 +217,24 @@ export default function ContributionsList() {
       ),
     },
     { key: 'type', header: 'Type', render: (c) => CONTRIBUTION_TYPES.find((t) => t.value === c.contribution_type)?.label || c.contribution_type },
+    {
+      key: 'detail', header: 'Detail',
+      render: (c) => {
+        if (c.contribution_type === 'project' && c.projects?.name) {
+          return <span className="text-xs text-ink-600">{c.projects.name}</span>;
+        }
+        if (c.contribution_type === 'monthly') {
+          // Show from period_id join if available, fallback to period_month/year
+          if (c.periods?.year && c.periods?.month) {
+            return <span className="text-xs text-ink-600">{new Date(c.periods.year, c.periods.month - 1).toLocaleString('default', { month: 'long', year: 'numeric' })}</span>;
+          }
+          if (c.period_month && c.period_year) {
+            return <span className="text-xs text-ink-600">{new Date(c.period_year, c.period_month - 1).toLocaleString('default', { month: 'long', year: 'numeric' })}</span>;
+          }
+        }
+        return <span className="text-xs text-ink-400">—</span>;
+      },
+    },
     { key: 'method', header: 'Method', render: (c) => PAYMENT_METHODS.find((m) => m.value === c.payment_method)?.label || c.payment_method },
     { key: 'reference_no', header: 'Reference', render: (c) => c.reference_no || '—' },
     {
@@ -301,10 +346,25 @@ export default function ContributionsList() {
       {canVerifyContributions && (
         <div className="flex flex-wrap gap-2 mb-4">
           {[
-            { value: 'all',       label: 'All',       icon: Wallet,        cls: 'text-ink-900' },
-            { value: 'pending',   label: 'Pending',   icon: Clock,         cls: 'text-amber-700' },
-            { value: 'confirmed', label: 'Confirmed', icon: ShieldCheck,   cls: 'text-primary-900' },
-            { value: 'rejected',  label: 'Rejected',  icon: XCircle,       cls: 'text-rose-700' },
+            { value: "all", label: "All", icon: Wallet, cls: "text-ink-900" },
+            {
+              value: "pending",
+              label: "Pending",
+              icon: Clock,
+              cls: "text-amber-700",
+            },
+            {
+              value: "confirmed",
+              label: "Confirmed",
+              icon: ShieldCheck,
+              cls: "text-primary-900",
+            },
+            {
+              value: "rejected",
+              label: "Rejected",
+              icon: XCircle,
+              cls: "text-rose-700",
+            },
           ].map((t) => {
             const Icon = t.icon;
             const isActive = statusTab === t.value;
@@ -313,15 +373,16 @@ export default function ContributionsList() {
                 key={t.value}
                 onClick={() => {
                   setStatusTab(t.value);
-                  if (t.value === 'pending') setSearchParams({ pending: '1' }); else setSearchParams({});
+                  if (t.value === "pending") setSearchParams({ pending: "1" });
+                  else setSearchParams({});
                 }}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border transition ${
                   isActive
-                    ? 'bg-primary-900 text-cream-50 border-primary-900'
-                    : 'bg-white text-ink-700 border-cream-200 hover:border-cream-300'
+                    ? "bg-primary-900 text-cream-50 border-primary-900"
+                    : "bg-white text-ink-700 border-cream-200 hover:border-cream-300"
                 }`}
               >
-                <Icon size={14}/>
+                <Icon size={14} />
                 {t.label}
               </button>
             );
@@ -332,7 +393,10 @@ export default function ContributionsList() {
       <div className="card-padded mb-4">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
           <div className="sm:col-span-2 relative">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400" />
+            <Search
+              size={16}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400"
+            />
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
@@ -340,31 +404,90 @@ export default function ContributionsList() {
               className="input pl-10"
             />
           </div>
-          <select value={type} onChange={(e) => setType(e.target.value)} className="input">
+          <select
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+            className="input"
+          >
             <option value="">All types</option>
             {CONTRIBUTION_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
             ))}
           </select>
         </div>
+        {/* Project sub-filter */}
+        {type === "project" && (
+          <div className="mb-3">
+            <select
+              value={projectFilter}
+              onChange={(e) => setProjectFilter(e.target.value)}
+              className="input"
+            >
+              <option value="">All projects</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
+        {/* Monthly period sub-filter */}
+        {type === "monthly" && periods.length > 0 && (
+          <div className="mb-3">
+            <select
+              value={periodFilter}
+              onChange={(e) => setPeriodFilter(e.target.value)}
+              className="input"
+            >
+              <option value="">All months</option>
+              {periods.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {new Date(p.year, p.month - 1).toLocaleString('default', { month: 'long', year: 'numeric' })}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="text-xs text-ink-600 mb-1 block">From</label>
-            <input type="date" className="input" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+            <input
+              type="date"
+              className="input"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+            />
           </div>
           <div>
             <label className="text-xs text-ink-600 mb-1 block">To</label>
-            <input type="date" className="input" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+            <input
+              type="date"
+              className="input"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+            />
           </div>
         </div>
         <div className="mt-3 text-sm text-ink-700 flex items-center gap-2 flex-wrap">
           <Wallet size={14} className="text-primary-700" />
-          Showing <strong>{filtered.length}</strong> entries · Total: <span className="font-semibold text-primary-900">{formatMoney(total)}</span>
-          {statusTab !== 'confirmed' && statusTab !== 'all' && (
-            <span className="text-ink-500">({statusTab} only — totals may not reflect official records)</span>
+          Showing <strong>{filtered.length}</strong> entries · Total:{" "}
+          <span className="font-semibold text-primary-900">
+            {formatMoney(total)}
+          </span>
+          {statusTab !== "confirmed" && statusTab !== "all" && (
+            <span className="text-ink-500">
+              ({statusTab} only — totals may not reflect official records)
+            </span>
           )}
           {(dateFrom || dateTo) && (
-            <button onClick={() => { setDateFrom(''); setDateTo(''); }} className="text-xs text-rose-700 hover:text-rose-900 underline ml-2">
+            <button
+              onClick={() => {
+                setDateFrom("");
+                setDateTo("");
+              }}
+              className="text-xs text-rose-700 hover:text-rose-900 underline ml-2"
+            >
               Clear date filter
             </button>
           )}
@@ -372,34 +495,47 @@ export default function ContributionsList() {
       </div>
 
       {/* Bulk verify bar — visible when there's a selection */}
-      {canVerifyContributions && statusTab === 'pending' && filtered.some((c) => c.verification_status === 'pending') && (
-        <div className="card-padded mb-4 bg-primary-50/40 border-primary-200">
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={selectAllVisible}
-              className="btn-secondary !py-1.5 text-xs"
-            >
-              {selectedIds.size > 0 ? `Clear (${selectedIds.size})` : 'Select all pending'}
-            </button>
-            <button
-              onClick={bulkVerify}
-              disabled={selectedIds.size === 0}
-              className="btn-primary !py-1.5 text-xs disabled:opacity-50"
-            >
-              <CheckCircle2 size={14}/> Verify {selectedIds.size > 0 ? `selected (${selectedIds.size})` : 'selected'}
-            </button>
-            <p className="text-xs text-ink-600 ml-auto">
-              Tip: filter by date or type first, then "Select all pending" to bulk-verify a batch (e.g. monthly contributions for last Sunday).
-            </p>
+      {canVerifyContributions &&
+        statusTab === "pending" &&
+        filtered.some((c) => c.verification_status === "pending") && (
+          <div className="card-padded mb-4 bg-primary-50/40 border-primary-200">
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={selectAllVisible}
+                className="btn-secondary !py-1.5 text-xs"
+              >
+                {selectedIds.size > 0
+                  ? `Clear (${selectedIds.size})`
+                  : "Select all pending"}
+              </button>
+              <button
+                onClick={bulkVerify}
+                disabled={selectedIds.size === 0}
+                className="btn-primary !py-1.5 text-xs disabled:opacity-50"
+              >
+                <CheckCircle2 size={14} /> Verify{" "}
+                {selectedIds.size > 0
+                  ? `selected (${selectedIds.size})`
+                  : "selected"}
+              </button>
+              <p className="text-xs text-ink-600 ml-auto">
+                Tip: filter by date or type first, then "Select all pending" to
+                bulk-verify a batch (e.g. monthly contributions for last
+                Sunday).
+              </p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       <DataTable
         loading={loading}
         rows={filtered}
         emptyTitle="No contributions yet"
-        emptyDescription={isAdmin ? 'Record the first contribution to get started.' : 'Once contributions are recorded, they will appear here.'}
+        emptyDescription={
+          isAdmin
+            ? "Record the first contribution to get started."
+            : "Once contributions are recorded, they will appear here."
+        }
         columns={columns}
       />
 
@@ -410,9 +546,16 @@ export default function ContributionsList() {
         size="md"
         footer={
           <>
-            <button onClick={() => setEditing(null)} className="btn-secondary">Cancel</button>
-            <button form="ce-form" type="submit" disabled={saving} className="btn-primary">
-              {saving ? 'Saving…' : 'Save changes'}
+            <button onClick={() => setEditing(null)} className="btn-secondary">
+              Cancel
+            </button>
+            <button
+              form="ce-form"
+              type="submit"
+              disabled={saving}
+              className="btn-primary"
+            >
+              {saving ? "Saving…" : "Save changes"}
             </button>
           </>
         }
@@ -421,46 +564,104 @@ export default function ContributionsList() {
           <form id="ce-form" onSubmit={saveEdit} className="space-y-3">
             <div className="bg-cream-100 rounded-lg p-3 text-sm">
               <p className="font-medium">{editing.members?.full_name}</p>
-              <p className="text-xs text-ink-600 font-mono">{editing.members?.membership_no}</p>
+              <p className="text-xs text-ink-600 font-mono">
+                {editing.members?.membership_no}
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="label">Amount (KSh) *</label>
-                <input required type="number" step="0.01" className="input" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })}/>
+                <input
+                  required
+                  type="number"
+                  step="0.01"
+                  className="input"
+                  value={form.amount}
+                  onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                />
               </div>
               <div>
                 <label className="label">Date *</label>
-                <input required type="date" className="input" value={form.contribution_date} onChange={(e) => setForm({ ...form, contribution_date: e.target.value })}/>
+                <input
+                  required
+                  type="date"
+                  className="input"
+                  value={form.contribution_date}
+                  onChange={(e) =>
+                    setForm({ ...form, contribution_date: e.target.value })
+                  }
+                />
               </div>
               <div>
                 <label className="label">Type</label>
-                <select className="input" value={form.contribution_type} onChange={(e) => setForm({ ...form, contribution_type: e.target.value })}>
-                  {CONTRIBUTION_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                <select
+                  className="input"
+                  value={form.contribution_type}
+                  onChange={(e) =>
+                    setForm({ ...form, contribution_type: e.target.value })
+                  }
+                >
+                  {CONTRIBUTION_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
                 <label className="label">Payment method</label>
-                <select className="input" value={form.payment_method} onChange={(e) => setForm({ ...form, payment_method: e.target.value })}>
-                  {PAYMENT_METHODS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+                <select
+                  className="input"
+                  value={form.payment_method}
+                  onChange={(e) =>
+                    setForm({ ...form, payment_method: e.target.value })
+                  }
+                >
+                  {PAYMENT_METHODS.map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
                 </select>
               </div>
-              <div>
-                <label className="label">Period month</label>
-                <select className="input" value={form.period_month || ''} onChange={(e) => setForm({ ...form, period_month: e.target.value })}>
-                  <option value="">—</option>
-                  {MONTHS.map((m, i) => <option key={i+1} value={i+1}>{m}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="label">Period year</label>
-                <input type="number" className="input" value={form.period_year || ''} onChange={(e) => setForm({ ...form, period_year: e.target.value })}/>
-              </div>
+              {/* // REPLACE WITH: */}
+              {form.contribution_type === "monthly" && (
+                <div className="col-span-2">
+                  <label className="label">Month</label>
+                  <select
+                    className="input"
+                    value={form.period_id}
+                    onChange={(e) =>
+                      setForm({ ...form, period_id: e.target.value })
+                    }
+                  >
+                    <option value="">Select month…</option>
+                    {periods.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {new Date(p.year, p.month - 1).toLocaleString(
+                          "default",
+                          {
+                            month: "long",
+                            year: "numeric",
+                          },
+                        )}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
             <div>
               <label className="label">Reference / M-Pesa code</label>
-              <input className="input" value={form.reference_no} onChange={(e) => setForm({ ...form, reference_no: e.target.value })}/>
+              <input
+                className="input"
+                value={form.reference_no}
+                onChange={(e) =>
+                  setForm({ ...form, reference_no: e.target.value })
+                }
+              />
             </div>
-            {form.contribution_type === 'project' && (
+            {form.contribution_type === "project" && (
               <div>
                 <label className="label">Project *</label>
                 {projects.length === 0 ? (
@@ -471,11 +672,15 @@ export default function ContributionsList() {
                   <select
                     className="input"
                     value={form.project_id}
-                    onChange={(e) => setForm({ ...form, project_id: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, project_id: e.target.value })
+                    }
                   >
                     <option value="">— Select project —</option>
                     {projects.map((p) => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
                     ))}
                   </select>
                 )}
@@ -483,7 +688,12 @@ export default function ContributionsList() {
             )}
             <div>
               <label className="label">Notes</label>
-              <textarea rows={2} className="input" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}/>
+              <textarea
+                rows={2}
+                className="input"
+                value={form.notes}
+                onChange={(e) => setForm({ ...form, notes: e.target.value })}
+              />
             </div>
           </form>
         )}
@@ -491,18 +701,32 @@ export default function ContributionsList() {
 
       <Modal
         open={!!rejecting}
-        onClose={() => { setRejecting(null); setRejectReason(''); }}
-        title={`Reject ${rejecting?.members?.full_name || 'contribution'}`}
+        onClose={() => {
+          setRejecting(null);
+          setRejectReason("");
+        }}
+        title={`Reject ${rejecting?.members?.full_name || "contribution"}`}
         footer={
           <>
-            <button onClick={() => { setRejecting(null); setRejectReason(''); }} className="btn-secondary">Cancel</button>
-            <button onClick={handleReject} className="btn-danger">Reject contribution</button>
+            <button
+              onClick={() => {
+                setRejecting(null);
+                setRejectReason("");
+              }}
+              className="btn-secondary"
+            >
+              Cancel
+            </button>
+            <button onClick={handleReject} className="btn-danger">
+              Reject contribution
+            </button>
           </>
         }
       >
         <div className="space-y-3">
           <div className="bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-900">
-            Rejecting will notify the member with your reason. They can resubmit a corrected version.
+            Rejecting will notify the member with your reason. They can resubmit
+            a corrected version.
           </div>
           <div>
             <label className="label">Reason *</label>

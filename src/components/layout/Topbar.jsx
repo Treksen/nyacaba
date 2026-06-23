@@ -6,9 +6,11 @@ import { supabase } from '../../lib/supabase';
 import { initials } from '../../lib/format';
 import Avatar from '../ui/Avatar';
 import { roleLabel } from '../../lib/constants';
+import { useRefresh } from '../../context/RefreshContext';
 
 export default function Topbar({ onOpenSidebar }) {
   const { profile, signOut, isAdminOrChair } = useAuth();
+  const { triggerRefresh, refreshing } = useRefresh();
   const navigate = useNavigate();
   const [unread, setUnread] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -53,12 +55,13 @@ export default function Topbar({ onOpenSidebar }) {
         <div className="flex-1" />
 
         <button
-          onClick={() => window.location.reload()}
-          className="p-2 rounded-lg text-ink-700 hover:bg-cream-200 transition"
+          onClick={triggerRefresh}
+          disabled={refreshing}
+          className="p-2 rounded-lg text-ink-700 hover:bg-cream-200 transition disabled:opacity-40"
           aria-label="Refresh page"
           title="Refresh"
         >
-          <RefreshCw size={18} />
+          <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
         </button>
 
         <Link

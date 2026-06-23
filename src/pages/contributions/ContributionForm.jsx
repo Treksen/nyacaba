@@ -18,33 +18,47 @@ export default function ContributionForm() {
   // self-record via the "Record contribution" button on /my-giving.
   useEffect(() => {
     if (!isAdmin) {
-      toast.error('Members record contributions from My Giving — taking you there.');
-      navigate('/my-giving', { replace: true });
+      toast.error(
+        "Members record contributions from My Giving — taking you there.",
+      );
+      navigate("/my-giving", { replace: true });
     }
   }, [isAdmin, navigate, toast]);
+
+  // Near the top of the component, fetch periods
+  const [periods, setPeriods] = useState([]);
+  useEffect(() => {
+    supabase
+      .from("monthly_periods")
+      .select("id, year, month")
+      .order("year", { ascending: false })
+      .order("month", { ascending: false })
+      .then(({ data }) => setPeriods(data || []));
+  }, []);
   const today = new Date();
   const [members, setMembers] = useState([]);
   const [projects, setProjects] = useState([]);
   const [pledges, setPledges] = useState([]);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    member_id: '',
-    amount: '',
-    contribution_type: 'monthly',
-    payment_method: 'cash',
-    reference_no: '',
+    member_id: "",
+    amount: "",
+    contribution_type: "monthly",
+    payment_method: "cash",
+    reference_no: "",
     contribution_date: today.toISOString().slice(0, 10),
     period_month: today.getMonth() + 1,
     period_year: today.getFullYear(),
-    project_id: '',
-    pledge_id: '',
-    notes: '',
+    project_id: "",
+    pledge_id: "",
+    notes: "",
+    period_id: "",
   });
 
   useEffect(() => {
     if (!isAdmin) {
-      toast.error('Only admins can record contributions');
-      navigate('/contributions');
+      toast.error("Only admins can record contributions");
+      navigate("/contributions");
     }
   }, [isAdmin, navigate, toast]);
 
@@ -52,8 +66,16 @@ export default function ContributionForm() {
     let active = true;
     async function load() {
       const [{ data: m }, { data: p }] = await Promise.all([
-        supabase.from('members').select('id, full_name, membership_no').eq('status', 'active').order('full_name'),
-        supabase.from('projects').select('id, name').neq('status', 'cancelled').order('name'),
+        supabase
+          .from("members")
+          .select("id, full_name, membership_no")
+          .eq("status", "active")
+          .order("full_name"),
+        supabase
+          .from("projects")
+          .select("id, name")
+          .neq("status", "cancelled")
+          .order("name"),
       ]);
       if (active) {
         setMembers(m || []);
@@ -61,23 +83,27 @@ export default function ContributionForm() {
       }
     }
     load();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
 
   // Load pledges for selected member when type is 'pledge'
   useEffect(() => {
     let active = true;
-    if (form.member_id && form.contribution_type === 'pledge') {
+    if (form.member_id && form.contribution_type === "pledge") {
       supabase
-        .from('pledges')
-        .select('id, purpose, pledge_amount, paid_amount, status')
-        .eq('member_id', form.member_id)
-        .in('status', ['open', 'partial'])
+        .from("pledges")
+        .select("id, purpose, pledge_amount, paid_amount, status")
+        .eq("member_id", form.member_id)
+        .in("status", ["open", "partial"])
         .then(({ data }) => active && setPledges(data || []));
     } else {
       setPledges([]);
     }
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [form.member_id, form.contribution_type]);
 
   function update(k, v) {
@@ -100,13 +126,16 @@ export default function ContributionForm() {
       pledge_id: form.pledge_id || null,
       notes: form.notes || null,
       recorded_by: profile?.id,
+
+      period_id:
+        form.contribution_type === "monthly" ? form.period_id || null : null,
     };
-    const { error } = await supabase.from('contributions').insert(payload);
+    const { error } = await supabase.from("contributions").insert(payload);
     setSaving(false);
-    if (error) notifyError(error, { action: 'ContributionForm' });
+    if (error) notifyError(error, { action: "ContributionForm" });
     else {
-      toast.success('Contribution recorded');
-      navigate('/contributions');
+      toast.success("Contribution recorded");
+      navigate("/contributions");
     }
   }
 
@@ -142,7 +171,6 @@ export default function ContributionForm() {
               ))}
             </select>
           </div>
-
           <div>
             <label className="label">Amount (KSh) *</label>
             <input
@@ -165,7 +193,6 @@ export default function ContributionForm() {
               onChange={(e) => update("contribution_date", e.target.value)}
             />
           </div>
-
           <div>
             <label className="label">Type *</label>
             <select
@@ -180,6 +207,30 @@ export default function ContributionForm() {
               ))}
             </select>
           </div>
+          {/* // In the JSX, after the contribution_type selector: */}
+          {form.contribution_type === "monthly" && (
+            <div>
+              <label className="label">Month *</label>
+              <select
+                required
+                className="input"
+                value={form.period_id}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, period_id: e.target.value }))
+                }
+              >
+                <option value="">Select month…</option>
+                {periods.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {new Date(p.year, p.month - 1).toLocaleString("default", {
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <div>
             <label className="label">Payment method *</label>
             <select
@@ -194,8 +245,7 @@ export default function ContributionForm() {
               ))}
             </select>
           </div>
-
-          <div>
+          {/* <div>
             <label className="label">Period month</label>
             <select
               className="input"
@@ -209,7 +259,7 @@ export default function ContributionForm() {
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
           <div>
             <label className="label">Period year</label>
             <input
@@ -219,7 +269,6 @@ export default function ContributionForm() {
               onChange={(e) => update("period_year", e.target.value)}
             />
           </div>
-
           <div>
             <label className="label">Reference / M-Pesa code</label>
             <input
@@ -229,7 +278,6 @@ export default function ContributionForm() {
               placeholder="e.g. SHX1A23BCD"
             />
           </div>
-
           {(form.contribution_type === "project" ||
             form.contribution_type === "pledge") && (
             <div>
@@ -248,7 +296,6 @@ export default function ContributionForm() {
               </select>
             </div>
           )}
-
           {form.contribution_type === "pledge" && pledges.length > 0 && (
             <div className="md:col-span-2">
               <label className="label">Apply to pledge</label>
@@ -266,7 +313,6 @@ export default function ContributionForm() {
               </select>
             </div>
           )}
-
           <div className="md:col-span-2">
             <label className="label">Notes</label>
             <textarea

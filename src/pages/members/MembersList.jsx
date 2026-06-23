@@ -129,7 +129,7 @@ export default function MembersList() {
           const isOwnProfile = profile?.id === m.profile_id;
 
           if (!canViewMemberDetails && !isOwnProfile) {
-            toast.error("You are not allowed to view member details");
+            toast.error("You cannot view other member details");
             return;
           }
 

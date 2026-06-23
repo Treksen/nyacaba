@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Plus, Hammer, ArrowRight } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -12,6 +12,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import EmptyState from '../../components/ui/EmptyState';
 import StatusBadge from '../../components/ui/StatusBadge';
 import Modal from '../../components/ui/Modal';
+import MonthlyContributions from "./MonthlyContributions";
 
 export default function ProjectsList() {
   const { canManageFinances: isAdmin, profile } = useAuth();
@@ -22,10 +23,23 @@ export default function ProjectsList() {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    name: '', code: '', description: '', budget: 0,
-    start_date: '', target_end_date: '', status: 'planning',
+    name: "",
+    code: "",
+    description: "",
+    budget: 0,
+    start_date: "",
+    target_end_date: "",
+    status: "planning",
   });
+  // const [tab, setTab] = useState("projects"); // 'projects' | 'monthly'
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [tab, setTab] = useState(searchParams.get("tab") || "projects");
 
+  // Update URL when tab changes
+  function switchTab(t) {
+    setTab(t);
+    setSearchParams({ tab: t });
+  }
   async function load() {
     setLoading(true);
     const { data } = await supabase
@@ -36,12 +50,14 @@ export default function ProjectsList() {
     setLoading(false);
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setSaving(true);
-    const { error } = await supabase.from('projects').insert({
+    const { error } = await supabase.from("projects").insert({
       ...form,
       budget: parseFloat(form.budget || 0),
       code: form.code || null,
@@ -50,11 +66,19 @@ export default function ProjectsList() {
       created_by: profile?.id,
     });
     setSaving(false);
-    if (error) notifyError(error, { action: 'ProjectsList' });
+    if (error) notifyError(error, { action: "ProjectsList" });
     else {
-      toast.success('Project created');
+      toast.success("Project created");
       setOpen(false);
-      setForm({ name: '', code: '', description: '', budget: 0, start_date: '', target_end_date: '', status: 'planning' });
+      setForm({
+        name: "",
+        code: "",
+        description: "",
+        budget: 0,
+        start_date: "",
+        target_end_date: "",
+        status: "planning",
+      });
       load();
     }
   }
@@ -63,9 +87,10 @@ export default function ProjectsList() {
     <>
       <PageHeader
         kicker="Building Together"
-        title="Projects"
+        title="Projects & Contributions"
         description="Every brick laid by faithful hands."
         action={
+          tab === "projects" &&
           isAdmin && (
             <button onClick={() => setOpen(true)} className="btn-primary">
               <Plus size={16} /> New project
@@ -74,104 +99,146 @@ export default function ProjectsList() {
         }
       />
 
-      {loading ? (
-        <div className="flex justify-center py-20">
-          <LoadingSpinner />
-        </div>
-      ) : rows.length === 0 ? (
-        <div className="card">
-          <EmptyState
-            icon={Hammer}
-            title="No projects yet"
-            description={
-              isAdmin
-                ? "Start by creating your first project."
-                : "Projects will appear here once created."
-            }
-            action={
-              isAdmin && (
-                <button onClick={() => setOpen(true)} className="btn-primary">
-                  <Plus size={16} /> New project
-                </button>
-              )
-            }
-          />
-        </div>
+      {/* Tabs */}
+      <div className="flex gap-1 p-1 bg-cream-100 rounded-xl mb-5 w-fit">
+        <button
+          onClick={() => switchTab("projects")}
+          className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+            tab === "projects"
+              ? "bg-white text-primary-900 shadow-sm"
+              : "text-ink-600 hover:text-ink-900"
+          }`}
+        >
+          Projects
+        </button>
+
+        <button
+          onClick={() => switchTab("monthly")}
+          className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+            tab === "monthly"
+              ? "bg-white text-primary-900 shadow-sm"
+              : "text-ink-600 hover:text-ink-900"
+          }`}
+        >
+          Monthly Contributions
+        </button>
+        
+      </div>
+
+      {tab === "monthly" ? (
+        <MonthlyContributions />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {rows.map((p) => (
-            <Link
-              key={p.id}
-              to={`/projects/${p.id}`}
-              className="card-padded group hover:shadow-lift transition-all duration-300 hover:-translate-y-0.5"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl bg-primary-50 text-primary-900 grid place-items-center">
-                  <Hammer size={18} />
-                </div>
-                <StatusBadge status={p.status} statusMap={PROJECT_STATUS} />
-              </div>
+        <>
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <LoadingSpinner />
+            </div>
+            
+          ) : rows.length === 0 ? (
+            
+            <div className="card">
+              
+              <EmptyState
+                icon={Hammer}
+                title="No projects yet"
+                description={
+                  isAdmin
+                    ? "Start by creating your first project."
+                    : "Projects will appear here once created."
+                }
+                action={
+                  isAdmin && (
+                    <button
+                      onClick={() => setOpen(true)}
+                      className="btn-primary"
+                    >
+                      <Plus size={16} /> New project
+                    </button>
+                  )
+                }
+              />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {rows.map((p) => (
+                <Link
+                  key={p.id}
+                  to={`/projects/${p.id}`}
+                  className="card-padded group hover:shadow-lift transition-all duration-300 hover:-translate-y-0.5"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-primary-50 text-primary-900 grid place-items-center">
+                      <Hammer size={18} />
+                    </div>
+                    <StatusBadge status={p.status} statusMap={PROJECT_STATUS} />
+                  </div>
 
-              <h3 className="font-display text-xl font-semibold text-ink-900 group-hover:text-primary-900 transition mb-1">
-                {p.name}
-              </h3>
-              {p.code && (
-                <p className="text-xs font-mono text-ink-500 mb-2">{p.code}</p>
-              )}
-              {p.description && (
-                <p className="text-sm text-ink-600 line-clamp-2 mb-3">
-                  {p.description}
-                </p>
-              )}
-
-              <div className="flex items-center justify-between text-xs text-ink-700 mb-2">
-                <span>Progress</span>
-                <span className="font-semibold text-primary-900">
-                  {Math.min(
-                    Math.round(
-                      ((p.total_contributions || 0) / Number(p.budget || 1)) *
-                        100,
-                    ),
-                    100,
+                  <h3 className="font-display text-xl font-semibold text-ink-900 group-hover:text-primary-900 transition mb-1">
+                    {p.name}
+                  </h3>
+                  {p.code && (
+                    <p className="text-xs font-mono text-ink-500 mb-2">
+                      {p.code}
+                    </p>
                   )}
-                  %
-                </span>
-              </div>
-              <div className="h-2 rounded-full bg-cream-200 overflow-hidden mb-4">
-                <div
-                  className="h-full bg-gradient-to-r from-primary-700 to-primary-900 rounded-full"
-                  style={{
-                    width: `${Math.min(
-                      Math.round(
-                        ((p.total_contributions || 0) / Number(p.budget || 1)) *
-                          100,
-                      ),
-                      100,
-                    )}%`,
-                  }}
-                />
-              </div>
+                  {p.description && (
+                    <p className="text-sm text-ink-600 line-clamp-2 mb-3">
+                      {p.description}
+                    </p>
+                  )}
 
-              <div className="flex items-end justify-between pt-3 border-t border-cream-200">
-                <div>
-                  <p className="kicker">Budget</p>
-                  <p className="font-semibold text-ink-900">
-                    {formatMoney(p.budget)}
-                  </p>
-                </div>
-                <ArrowRight
-                  size={16}
-                  className="text-primary-900 group-hover:translate-x-1 transition-transform"
-                />
-              </div>
-              {p.target_end_date && (
-                <p className="text-xs text-ink-500 mt-2">
-                  Target: {formatDate(p.target_end_date)}
-                </p>
-              )}
-            </Link>
-          ))}
-        </div>
+                  <div className="flex items-center justify-between text-xs text-ink-700 mb-2">
+                    <span>Progress</span>
+                    <span className="font-semibold text-primary-900">
+                      {Math.min(
+                        Math.round(
+                          ((p.total_contributions || 0) /
+                            Number(p.budget || 1)) *
+                            100,
+                        ),
+                        100,
+                      )}
+                      %
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full bg-cream-200 overflow-hidden mb-4">
+                    <div
+                      className="h-full bg-gradient-to-r from-primary-700 to-primary-900 rounded-full"
+                      style={{
+                        width: `${Math.min(
+                          Math.round(
+                            ((p.total_contributions || 0) /
+                              Number(p.budget || 1)) *
+                              100,
+                          ),
+                          100,
+                        )}%`,
+                      }}
+                    />
+                  </div>
+
+                  <div className="flex items-end justify-between pt-3 border-t border-cream-200">
+                    <div>
+                      <p className="kicker">Budget</p>
+                      <p className="font-semibold text-ink-900">
+                        {formatMoney(p.budget)}
+                      </p>
+                    </div>
+                    <ArrowRight
+                      size={16}
+                      className="text-primary-900 group-hover:translate-x-1 transition-transform"
+                    />
+                  </div>
+                  {p.target_end_date && (
+                    <p className="text-xs text-ink-500 mt-2">
+                      Target: {formatDate(p.target_end_date)}
+                    </p>
+                  )}
+                </Link>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       <Modal
