@@ -55,24 +55,24 @@ export default function Topbar({ onOpenSidebar }) {
         <div className="flex-1" />
 
         <button
-          onClick={triggerRefresh}
+          onClick={() => window.location.reload()}
           disabled={refreshing}
           className="p-2 rounded-lg text-ink-700 hover:bg-cream-200 transition disabled:opacity-40"
           aria-label="Refresh page"
           title="Refresh"
         >
-          <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
+          <RefreshCw size={18} className={refreshing ? "animate-spin" : ""} />
         </button>
 
         <Link
           to="/notifications"
           className="relative p-2 rounded-lg text-ink-700 hover:bg-cream-200 transition"
-          aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`}
+          aria-label={`Notifications${unread ? `, ${unread} unread` : ""}`}
         >
           <Bell size={20} />
           {unread > 0 && (
             <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-accent-500 text-[10px] font-bold text-white grid place-items-center">
-              {unread > 99 ? '99+' : unread}
+              {unread > 99 ? "99+" : unread}
             </span>
           )}
         </Link>
@@ -89,7 +89,9 @@ export default function Topbar({ onOpenSidebar }) {
               className="!rounded-lg"
             />
             <div className="hidden sm:block text-left">
-              <p className="text-sm font-semibold text-ink-900 leading-tight">{profile?.full_name}</p>
+              <p className="text-sm font-semibold text-ink-900 leading-tight">
+                {profile?.full_name}
+              </p>
               <p className="text-[11px] text-ink-600 leading-tight">
                 {roleLabel(profile?.role)}
               </p>
@@ -99,7 +101,10 @@ export default function Topbar({ onOpenSidebar }) {
 
           {menuOpen && (
             <>
-              <div className="fixed inset-0 z-30" onClick={() => setMenuOpen(false)} />
+              <div
+                className="fixed inset-0 z-30"
+                onClick={() => setMenuOpen(false)}
+              />
               <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lift border border-cream-200 py-2 z-40 animate-scale-in">
                 <Link
                   to="/profile"
@@ -121,7 +126,7 @@ export default function Topbar({ onOpenSidebar }) {
                 <button
                   onClick={async () => {
                     await signOut();
-                    navigate('/login');
+                    navigate("/login");
                   }}
                   className="w-full text-left px-4 py-2 text-sm text-rose-700 hover:bg-rose-50 flex items-center gap-2"
                 >

@@ -7,6 +7,7 @@ import {
 import Logo from '../ui/Logo';
 import { CHURCH_NAME } from '../../lib/constants';
 import { useAuth } from '../../context/AuthContext';
+import { APP_VERSION } from "../../lib/constants";
 
 const NAV = [
   { to: '/',              label: 'Dashboard',     icon: LayoutDashboard },
@@ -222,6 +223,9 @@ export default function Sidebar({ open, onClose }) {
             Serving with Transparency and Care.
           </p>
         </div>
+        <p className="p-4 mx-3 text-[10px] tracking-[0.18em] lowercase text-accent-300 font-semibold mb-1">
+          Version {APP_VERSION}
+        </p>
       </aside>
     </>
   );

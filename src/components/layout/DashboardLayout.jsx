@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 
+
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
@@ -15,9 +16,9 @@ export default function DashboardLayout() {
         </main>
         <footer className="py-6 px-6 text-center text-xs text-ink-500 border-t border-cream-200 bg-cream-100/40">
           <p>
-            © {new Date().getFullYear()} Nyacaba Family. All
-            Rights Reserved.
+            © {new Date().getFullYear()} Nyacaba Family. All Rights Reserved.
           </p>
+          
         </footer>
       </div>
     </div>
