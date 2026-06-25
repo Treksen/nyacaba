@@ -9,14 +9,14 @@ export default defineConfig({
       registerType: 'prompt',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'Nyacaba WMS',
-        short_name: 'Nyacaba WMS',
+        name: 'Nyacaba-WMS',
+        short_name: 'Nyacaba-WMS',
         description: 'Nyacaba Welfare Management System',
         theme_color: '#0F4A3C',
         background_color: '#FAF7F2',
         display: 'standalone',
         start_url: '/',
-        
+        version: APP_VERSION,
         icons: [
           {
             src: '/icons/icon-192.png',

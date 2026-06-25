@@ -134,4 +134,4 @@ export const EXPENSE_PAYMENT_METHODS = [
   { value: 'other',  label: 'Other' },
 ];
 
-export const APP_VERSION = '1.6.1';
+export const APP_VERSION = '1.6.2';
