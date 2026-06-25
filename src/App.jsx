@@ -42,7 +42,6 @@ import ExpenseDetail from './pages/expenses/ExpenseDetail';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import ErrorBoundary from './components/ErrorBoundary';
-import UpdateBanner from './components/UpdateBanner';
 import MonthlyDetail from "./pages/projects/MonthlyDetail";
 import MonthlyContributions from "./pages/projects/MonthlyContributions";
 
@@ -59,7 +58,6 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <UpdateBanner />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

@@ -6,17 +6,17 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'Nyacaba-WMS',
-        short_name: 'Nyacaba-WMS',
-        description: 'Nyacaba Welfare Management System',
+        name: 'Nyacaba WMS',
+        short_name: 'Nyacaba WMS',
+        description: 'Church welfare, contributions, and project management',
         theme_color: '#0F4A3C',
         background_color: '#FAF7F2',
         display: 'standalone',
         start_url: '/',
-        // version: APP_VERSION,
+        
         icons: [
           {
             src: '/icons/icon-192.png',
