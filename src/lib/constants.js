@@ -133,5 +133,3 @@ export const EXPENSE_PAYMENT_METHODS = [
   { value: 'cheque', label: 'Cheque' },
   { value: 'other',  label: 'Other' },
 ];
-
-export const APP_VERSION = '1.6.2';
