@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
-import { APP_VERSION } from './src/lib/constants';
 
 export default defineConfig({
   plugins: [
@@ -17,7 +16,7 @@ export default defineConfig({
         background_color: '#FAF7F2',
         display: 'standalone',
         start_url: '/',
-        version: APP_VERSION,
+        // version: APP_VERSION,
         icons: [
           {
             src: '/icons/icon-192.png',
